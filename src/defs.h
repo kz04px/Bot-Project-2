@@ -14,6 +14,7 @@
 
 #define MAX_BOTS 64
 #define MAX_PELLETS 256
+#define EYE_CONE_ACCURACY 4
 
 #define MAX_PARTS   12
 #define MAX_EYES    16
@@ -52,6 +53,7 @@ typedef struct
   int part;
   float angle;
   float fov;
+  float dist;
   
   float str;
   float r;

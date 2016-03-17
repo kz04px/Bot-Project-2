@@ -88,36 +88,6 @@ int world_bot_add(s_world *world)
   float green = RAND_BETWEEN(0.0, 1.0);
   float blue = RAND_BETWEEN(0.0, 1.0);
   
-  /*
-  // Body parts
-  float spacer = 0.3;
-  world->bots[b].num_parts = rand()%(MAX_PARTS-5) + 5; //MAX_PARTS;
-  assert(world->bots[b].num_parts <= MAX_PARTS);
-  assert(world->bots[b].num_parts >= 0);
-  // Body parts - colouring
-  float red = RAND_BETWEEN(0.0, 1.0);
-  float green = RAND_BETWEEN(0.0, 1.0);
-  float blue = RAND_BETWEEN(0.0, 1.0);
-  for(i = 0; i < world->bots[b].num_parts; ++i)
-  {
-    world->bots[b].parts[i].r = red - 0.1*i;
-    world->bots[b].parts[i].g = green - 0.1*i;
-    world->bots[b].parts[i].b = blue - 0.1*i;
-  }
-  // Body parts - positioning
-  world->bots[b].parts[0].angle = RAND_BETWEEN(0.0, 2*M_PI);
-  world->bots[b].parts[0].x = x;
-  world->bots[b].parts[0].y = y;
-  for(i = 1; i < world->bots[b].num_parts; ++i)
-  {
-    world->bots[b].parts[i].angle = world->bots[b].parts[i-1].angle + RAND_BETWEEN(-0.5, 0.5); //RAND_BETWEEN(0.0, 2*M_PI);
-    world->bots[b].parts[i].x = world->bots[b].parts[i-1].x - spacer*sin(world->bots[b].parts[i].angle);
-    world->bots[b].parts[i].y = world->bots[b].parts[i-1].y - spacer*cos(world->bots[b].parts[i].angle);
-    
-    spacer *= 0.8;
-  }
-  */
-  
   float spacer = 0.3;
   
   world->bots[b].id = id;
@@ -163,7 +133,8 @@ int world_bot_add(s_world *world)
   {
     world->bots[b].eyes[e].part = 0;
     world->bots[b].eyes[e].angle = (e - 0.5*(world->bots[b].num_eyes-1))*eye_total_angle;
-    world->bots[b].eyes[e].fov = 2.0*M_PI/6;
+    world->bots[b].eyes[e].fov = 2.0*M_PI/5;
+    world->bots[b].eyes[e].dist = 3.0;
     
     world->bots[b].eyes[e].r = 1.0;
     world->bots[b].eyes[e].g = 0.0;

@@ -247,12 +247,119 @@ int main()
     int b;
     for(b = 0; b < world->num_bots; ++b)
     {
+      int s;
+      int e;
+      
+      /*** Eyes - Cones ***/
+      float eye_cone_vertices[4 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes];
+      float eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes];
+      float eye_cone_colours[6 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes];
+      float eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes];
+      for(e = 0; e < world->bots[b].num_eyes; ++e)
+      {
+        int part = world->bots[b].eyes[e].part;
+        
+        // p0
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 0] = 0.0;
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 1] = 0.0;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 0] = world->bots[b].parts[part].x;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 1] = world->bots[b].parts[part].y;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(0) + 0] = world->bots[b].eyes[e].r;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(0) + 1] = world->bots[b].eyes[e].g;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(0) + 2] = world->bots[b].eyes[e].b;
+        eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2)*e + 2*(0) + 0] = 0.0;
+        // p1
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 2] = 0.0;
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 3] = world->bots[b].eyes[e].dist;;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 2] = world->bots[b].parts[part].x;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(0) + 3] = world->bots[b].parts[part].y;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(0) + 3] = world->bots[b].eyes[e].r;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(0) + 4] = world->bots[b].eyes[e].g;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(0) + 5] = world->bots[b].eyes[e].b;
+        eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2)*e + 2*(0) + 1] = world->bots[b].parts[part].angle +
+                                                                        world->bots[b].eyes[e].angle -
+                                                                        world->bots[b].eyes[e].fov/2;
+        // p3
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 0] = 0.0;
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 1] = 0.0;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 0] = world->bots[b].parts[part].x;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 1] = world->bots[b].parts[part].y;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(1) + 0] = world->bots[b].eyes[e].r;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(1) + 1] = world->bots[b].eyes[e].g;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(1) + 2] = world->bots[b].eyes[e].b;
+        eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2)*e + 2*(1) + 0] = 0.0;
+        // p4
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 2] = 0.0;
+        eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 3] = world->bots[b].eyes[e].dist;;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 2] = world->bots[b].parts[part].x;
+        eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(1) + 3] = world->bots[b].parts[part].y;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(1) + 3] = world->bots[b].eyes[e].r;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(1) + 4] = world->bots[b].eyes[e].g;
+        eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(1) + 5] = world->bots[b].eyes[e].b;
+        eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2)*e + 2*(1) + 1] = world->bots[b].parts[part].angle +
+                                                                        world->bots[b].eyes[e].angle +
+                                                                        world->bots[b].eyes[e].fov/2;
+        
+        int n;
+        for(n = 0; n < EYE_CONE_ACCURACY; ++n)
+        {
+          // pn
+          eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 0] = 0.0;
+          eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 1] = world->bots[b].eyes[e].dist;
+          eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 0] = world->bots[b].parts[part].x;
+          eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 1] = world->bots[b].parts[part].y;
+          eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(n+2) + 0] = world->bots[b].eyes[e].r;
+          eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(n+2) + 1] = world->bots[b].eyes[e].g;
+          eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(n+2) + 2] = world->bots[b].eyes[e].b;
+          eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2)*e + 2*(n+2) + 0] = world->bots[b].parts[part].angle +
+                                                                            world->bots[b].eyes[e].angle -
+                                                                            world->bots[b].eyes[e].fov/2 +
+                                                                            (float)n*(world->bots[b].eyes[e].fov/EYE_CONE_ACCURACY);
+          // pn+1
+          eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 2] = 0.0;
+          eye_cone_vertices[ 4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 3] = world->bots[b].eyes[e].dist;
+          eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 2] = world->bots[b].parts[part].x;
+          eye_cone_positions[4 * (EYE_CONE_ACCURACY + 2)*e + 4*(n+2) + 3] = world->bots[b].parts[part].y;
+          eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(n+2) + 3] = world->bots[b].eyes[e].r;
+          eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(n+2) + 4] = world->bots[b].eyes[e].g;
+          eye_cone_colours[  6 * (EYE_CONE_ACCURACY + 2)*e + 6*(n+2) + 5] = world->bots[b].eyes[e].b;
+          eye_cone_rotations[2 * (EYE_CONE_ACCURACY + 2)*e + 2*(n+2) + 1] = world->bots[b].parts[part].angle +
+                                                                            world->bots[b].eyes[e].angle -
+                                                                            world->bots[b].eyes[e].fov/2 +
+                                                                            (float)(n+1)*(world->bots[b].eyes[e].fov/EYE_CONE_ACCURACY);
+        }
+      }
+      
+      // Vertices
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 4 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes * sizeof *eye_cone_vertices, eye_cone_vertices, GL_STATIC_DRAW);
+      
+      // Positions
+      glBindBuffer(GL_ARRAY_BUFFER, tbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 4 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_parts * sizeof *eye_cone_positions, eye_cone_positions, GL_STATIC_DRAW);
+      
+      // Colours
+      glBindBuffer(GL_ARRAY_BUFFER, cbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 6 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes * sizeof *eye_cone_colours, eye_cone_colours, GL_STATIC_DRAW);
+      
+      // Rotations
+      glBindBuffer(GL_ARRAY_BUFFER, rbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 2 * (EYE_CONE_ACCURACY + 2) * world->bots[b].num_eyes * sizeof *eye_cone_rotations, eye_cone_rotations, GL_STATIC_DRAW);
+      
+      // Draw eye cones
+      for(i = 0; i < world->bots[b].num_eyes; ++i)
+      {
+        glDrawArrays(GL_LINES, 2 * (EYE_CONE_ACCURACY + 2)*i, 2*(EYE_CONE_ACCURACY + 2));
+      }
+      /*** Eyes - Cones ***/
+      
+      
+      
       /*** Spikes ***/
       float spike_vertices[2 * 3 * world->bots[b].num_spikes];
       float spike_positions[2 * 3 * world->bots[b].num_spikes];
       float spike_colours[3 * 3 * world->bots[b].num_spikes];
       float spike_rotations[1 * 3 * world->bots[b].num_spikes];
-      int s;
       for(s = 0; s < world->bots[b].num_spikes; ++s)
       {
         int part = world->bots[b].spikes[s].part;
@@ -392,54 +499,125 @@ int main()
       /*** Body parts ***/
       
       
-      /*** Eyes ***/
       float eye_size = 0.02;
       float eye_vertices[2 * 4 * world->bots[b].num_eyes];
       float eye_positions[2 * 4 * world->bots[b].num_eyes];
       float eye_colours[3 * 4 * world->bots[b].num_eyes];
       float eye_rotations[1 * 4 * world->bots[b].num_eyes];
-      int e;
+      /*** Eyes - Borders ***/
       for(e = 0; e < world->bots[b].num_eyes; ++e)
       {
+        int part = world->bots[b].eyes[e].part;
+        
+        // p0
+        eye_vertices[2*4*e + 0] = -1.2*eye_size;
+        eye_vertices[2*4*e + 1] = -1.2*eye_size + 0.15;
+        eye_positions[2*4*e + 0] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 1] = world->bots[b].parts[part].y;
+        eye_colours[3*4*e +  0] =  0.0;
+        eye_colours[3*4*e +  1] =  0.0;
+        eye_colours[3*4*e +  2] =  0.0;
+        eye_rotations[1*4*e + 0] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
+        
+        // p1
+        eye_vertices[2*4*e + 2] = -1.2*eye_size;
+        eye_vertices[2*4*e + 3] =  1.2*eye_size + 0.15;
+        eye_positions[2*4*e + 2] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 3] = world->bots[b].parts[part].y;
+        eye_colours[3*4*e +  3] =  0.0;
+        eye_colours[3*4*e +  4] =  0.0;
+        eye_colours[3*4*e +  5] =  0.0;
+        eye_rotations[1*4*e + 1] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
+        
+        // p2
+        eye_vertices[2*4*e + 4] =  1.2*eye_size;
+        eye_vertices[2*4*e + 5] =  1.2*eye_size + 0.15;
+        eye_positions[2*4*e + 4] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 5] = world->bots[b].parts[part].y;
+        eye_colours[3*4*e +  6] =  0.0;
+        eye_colours[3*4*e +  7] =  0.0;
+        eye_colours[3*4*e +  8] =  0.0;
+        eye_rotations[1*4*e + 2] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
+        
+        // p3
+        eye_vertices[2*4*e + 6] =  1.2*eye_size;
+        eye_vertices[2*4*e + 7] = -1.2*eye_size + 0.15;
+        eye_positions[2*4*e + 6] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 7] = world->bots[b].parts[part].y;
+        eye_colours[3*4*e +  9] =  0.0;
+        eye_colours[3*4*e + 10] =  0.0;
+        eye_colours[3*4*e + 11] =  0.0;
+        eye_rotations[1*4*e + 3] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
+      }
+      
+      // Vertices
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 2 * 4 * world->bots[b].num_eyes * sizeof *eye_vertices, eye_vertices, GL_STATIC_DRAW);
+      
+      // Positions
+      glBindBuffer(GL_ARRAY_BUFFER, tbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 2 * 4 * world->bots[b].num_parts * sizeof *eye_positions, eye_positions, GL_STATIC_DRAW);
+      
+      // Colours
+      glBindBuffer(GL_ARRAY_BUFFER, cbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 3 * 4 * world->bots[b].num_eyes * sizeof *eye_colours, eye_colours, GL_STATIC_DRAW);
+      
+      // Rotations
+      glBindBuffer(GL_ARRAY_BUFFER, rbo_test);
+      glBufferData(GL_ARRAY_BUFFER, 1 * 4 * world->bots[b].num_eyes * sizeof *eye_rotations, eye_rotations, GL_STATIC_DRAW);
+      
+      // Draw eyes
+      for(i = 0; i < world->bots[b].num_eyes; ++i)
+      {
+        glDrawArrays(GL_TRIANGLE_FAN, 4*i, 4);
+      }
+      /*** Eyes - Borders ***/
+      
+      
+      /*** Eyes ***/
+      for(e = 0; e < world->bots[b].num_eyes; ++e)
+      {
+        int part = world->bots[b].eyes[e].part;
+        
         // p0
         eye_vertices[2*4*e + 0] = -eye_size;
         eye_vertices[2*4*e + 1] = -eye_size + 0.15;
-        eye_positions[2*4*e + 0] = world->bots[b].parts[0].x;
-        eye_positions[2*4*e + 1] = world->bots[b].parts[0].y;
+        eye_positions[2*4*e + 0] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 1] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  0] =  world->bots[b].eyes[e].r;
         eye_colours[3*4*e +  1] =  world->bots[b].eyes[e].g;
         eye_colours[3*4*e +  2] =  world->bots[b].eyes[e].b;
-        eye_rotations[1*4*e + 0] = world->bots[b].parts[0].angle + world->bots[b].eyes[e].angle;
+        eye_rotations[1*4*e + 0] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
         
         // p1
         eye_vertices[2*4*e + 2] = -eye_size;
         eye_vertices[2*4*e + 3] =  eye_size + 0.15;
-        eye_positions[2*4*e + 2] = world->bots[b].parts[0].x;
-        eye_positions[2*4*e + 3] = world->bots[b].parts[0].y;
+        eye_positions[2*4*e + 2] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 3] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  3] =  world->bots[b].eyes[e].r;
         eye_colours[3*4*e +  4] =  world->bots[b].eyes[e].g;
         eye_colours[3*4*e +  5] =  world->bots[b].eyes[e].b;
-        eye_rotations[1*4*e + 1] = world->bots[b].parts[0].angle + world->bots[b].eyes[e].angle;
+        eye_rotations[1*4*e + 1] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
         
         // p2
         eye_vertices[2*4*e + 4] =  eye_size;
         eye_vertices[2*4*e + 5] =  eye_size + 0.15;
-        eye_positions[2*4*e + 4] = world->bots[b].parts[0].x;
-        eye_positions[2*4*e + 5] = world->bots[b].parts[0].y;
+        eye_positions[2*4*e + 4] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 5] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  6] =  world->bots[b].eyes[e].r;
         eye_colours[3*4*e +  7] =  world->bots[b].eyes[e].g;
         eye_colours[3*4*e +  8] =  world->bots[b].eyes[e].b;
-        eye_rotations[1*4*e + 2] = world->bots[b].parts[0].angle + world->bots[b].eyes[e].angle;
+        eye_rotations[1*4*e + 2] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
         
         // p3
         eye_vertices[2*4*e + 6] =  eye_size;
         eye_vertices[2*4*e + 7] = -eye_size + 0.15;
-        eye_positions[2*4*e + 6] = world->bots[b].parts[0].x;
-        eye_positions[2*4*e + 7] = world->bots[b].parts[0].y;
+        eye_positions[2*4*e + 6] = world->bots[b].parts[part].x;
+        eye_positions[2*4*e + 7] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  9] =  world->bots[b].eyes[e].r;
         eye_colours[3*4*e + 10] =  world->bots[b].eyes[e].g;
         eye_colours[3*4*e + 11] =  world->bots[b].eyes[e].b;
-        eye_rotations[1*4*e + 3] = world->bots[b].parts[0].angle + world->bots[b].eyes[e].angle;
+        eye_rotations[1*4*e + 3] = world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle;
       }
       
       // Vertices
