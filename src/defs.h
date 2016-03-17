@@ -12,9 +12,12 @@
 #include <math.h>
 #include <time.h>
 
-#define MAX_BOTS 64
-#define MAX_PELLETS 256
+#define MAX_BOTS 128
+#define MAX_PELLETS 512
 #define EYE_CONE_ACCURACY 8
+
+#define MIN_VIEW_DIST  1.0
+#define MAX_VIEW_DIST  5.0
 
 #define MAX_PARTS   12
 #define MAX_EYES    16
@@ -22,6 +25,8 @@
 
 #define DEG_TO_RAD(x) (x*(3.142/180.0))
 #define RAND_BETWEEN(a, b) ((b-a)*((float)rand()/RAND_MAX)+a)
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 typedef struct
 {
@@ -101,6 +106,7 @@ typedef struct
 typedef struct
 {
   int seed;
+  int frame;
   float w;
   float h;
   

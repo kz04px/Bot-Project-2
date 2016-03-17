@@ -1,6 +1,15 @@
 #include "defs.h"
 #include "matrix.h"
 
+// 144 ns
+// 133 ns
+// 100 ns
+//  90 ns
+//  
+//  
+// ...
+//  36 ns
+
 void update_fps_counter(GLFWwindow* window)
 {
   static double previous_seconds = 0;
@@ -62,7 +71,7 @@ int main()
   }
   else
   {
-    window = glfwCreateWindow(window_width, window_height, "Hello Triangle", NULL, NULL);
+    window = glfwCreateWindow(window_width, window_height, "Bot Project 2", NULL, NULL);
   }
   if(!window)
   {
@@ -117,14 +126,28 @@ int main()
   
   s_world *world = malloc(1*sizeof(s_world));
   world_init(world);
-  world_pellets_add(world, 128);
-  world_bots_add(world, 32);
+  world_pellets_add(world, 150);
+  world_bots_add(world, 20);
   
   #ifndef NDEBUG
   world_print_details(world);
+  
+  #define NUM_FRAMES 10000
+  double t0 = glfwGetTime();
+  for(i = 0; i < NUM_FRAMES; ++i)
+  {
+    world_simulate_frame(world);
+  }
+  double t1 = glfwGetTime();
+  
+  printf("Simulation Benchmark:\n");
+  printf("Frames: %i\n", NUM_FRAMES);
+  printf("Total time: %.2gs\n", t1-t0);
+  printf("Time per frame: %.4gns\n", (t1-t0)/NUM_FRAMES*1000.0*1000.0);
+  printf("\n");
   #endif
   
-  //Does the GPU support current FBO configuration?
+  // Does the GPU support current FBO configuration?
   err = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
   switch(err)
   {
@@ -499,7 +522,7 @@ int main()
         
         // p0
         eye_vertices[2*4*e + 0] = -1.2*eye_size;
-        eye_vertices[2*4*e + 1] = -1.2*eye_size + 0.15;
+        eye_vertices[2*4*e + 1] = -1.2*eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 0] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 1] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  0] =  0.0;
@@ -509,7 +532,7 @@ int main()
         
         // p1
         eye_vertices[2*4*e + 2] = -1.2*eye_size;
-        eye_vertices[2*4*e + 3] =  1.2*eye_size + 0.15;
+        eye_vertices[2*4*e + 3] =  1.2*eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 2] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 3] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  3] =  0.0;
@@ -519,7 +542,7 @@ int main()
         
         // p2
         eye_vertices[2*4*e + 4] =  1.2*eye_size;
-        eye_vertices[2*4*e + 5] =  1.2*eye_size + 0.15;
+        eye_vertices[2*4*e + 5] =  1.2*eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 4] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 5] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  6] =  0.0;
@@ -529,7 +552,7 @@ int main()
         
         // p3
         eye_vertices[2*4*e + 6] =  1.2*eye_size;
-        eye_vertices[2*4*e + 7] = -1.2*eye_size + 0.15;
+        eye_vertices[2*4*e + 7] = -1.2*eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 6] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 7] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  9] =  0.0;
@@ -569,7 +592,7 @@ int main()
         
         // p0
         eye_vertices[2*4*e + 0] = -eye_size;
-        eye_vertices[2*4*e + 1] = -eye_size + 0.15;
+        eye_vertices[2*4*e + 1] = -eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 0] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 1] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  0] =  world->bots[b].eyes[e].r;
@@ -579,7 +602,7 @@ int main()
         
         // p1
         eye_vertices[2*4*e + 2] = -eye_size;
-        eye_vertices[2*4*e + 3] =  eye_size + 0.15;
+        eye_vertices[2*4*e + 3] =  eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 2] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 3] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  3] =  world->bots[b].eyes[e].r;
@@ -589,7 +612,7 @@ int main()
         
         // p2
         eye_vertices[2*4*e + 4] =  eye_size;
-        eye_vertices[2*4*e + 5] =  eye_size + 0.15;
+        eye_vertices[2*4*e + 5] =  eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 4] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 5] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  6] =  world->bots[b].eyes[e].r;
@@ -599,7 +622,7 @@ int main()
         
         // p3
         eye_vertices[2*4*e + 6] =  eye_size;
-        eye_vertices[2*4*e + 7] = -eye_size + 0.15;
+        eye_vertices[2*4*e + 7] = -eye_size + 0.6*world->bots[b].parts[part].radius;
         eye_positions[2*4*e + 6] = world->bots[b].parts[part].x;
         eye_positions[2*4*e + 7] = world->bots[b].parts[part].y;
         eye_colours[3*4*e +  9] =  world->bots[b].eyes[e].r;

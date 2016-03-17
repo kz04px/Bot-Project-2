@@ -1,4 +1,7 @@
 To do:
+- Add hearing
+- Add a physics thread
+- Add overlay
 - 
 
 Current:
