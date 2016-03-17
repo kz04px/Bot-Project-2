@@ -14,11 +14,11 @@
 
 #define MAX_BOTS 64
 #define MAX_PELLETS 256
-#define EYE_CONE_ACCURACY 4
+#define EYE_CONE_ACCURACY 8
 
 #define MAX_PARTS   12
 #define MAX_EYES    16
-#define MAX_SPIKES  16
+#define MAX_SPIKES  32
 
 #define DEG_TO_RAD(x) (x*(3.142/180.0))
 #define RAND_BETWEEN(a, b) ((b-a)*((float)rand()/RAND_MAX)+a)
@@ -130,14 +130,16 @@ float window_ratio;
 int window_fullscreen;
 
 // buffers.c
-int buffers_init_pellets(s_world* world, s_buffers* buffers);
-int buffers_init_bots(s_world* world, s_buffers* buffers);
+int buffers_init_background(s_buffers* buffers);
+int buffers_init_pellets(s_buffers* buffers);
+int buffers_init_bots(s_buffers* buffers);
 
 int buffers_fill_background(s_world* world, s_buffers* buffers);
 int buffers_fill_pellets(s_world* world, s_buffers* buffers);
 int buffers_fill_bots(s_world* world);
 
 // bot.c
+int bot_eye_add(s_bot* bot, int part, float angle, float fov, float dist);
 int bot_spike_add(s_bot* bot, int part, float length, float angle);
 
 // world.c

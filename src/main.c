@@ -137,17 +137,11 @@ int main()
   }
   
   s_buffers buffers_background;
-  s_buffers buffers_pellets;
-  //s_buffers buffers_bots;
-  
+  buffers_init_background(&buffers_background);
   buffers_fill_background(world, &buffers_background);
-  buffers_init_pellets(world, &buffers_pellets);
   
-  //buffers_fill_bots(world, &buffers_bots);
-  
-  //GLuint vao_background = buffers_fill_background(world);
-  //GLuint vao_pellets = buffers_fill_pellets(world);
-  //GLuint vao_bots = buffers_fill_bots(world);
+  s_buffers buffers_pellets;
+  buffers_init_pellets(&buffers_pellets);
   
   camera_x = world->w/2;
   camera_y = world->h/2;
@@ -157,7 +151,6 @@ int main()
   GLint loc_vp_matrix = glGetUniformLocation(shader_program, "vp_matrix");
   if(loc_vp_matrix < 0) {print_log("ERROR: Could not find uniform vp_matrix\n"); return -1;}
   
-  /******************* Test *******************/
   GLuint vao_test, vbo_test, tbo_test, cbo_test, rbo_test;
   
   glGenVertexArrays(1, &vao_test);
@@ -206,7 +199,6 @@ int main()
     
     size *= 0.9;
   }
-  /******************* Test *******************/
   
   // Drawing
   glClearColor(0.6, 0.6, 0.8, 1.0);
@@ -239,10 +231,6 @@ int main()
     glDrawElementsInstanced(GL_TRIANGLES, 8, GL_UNSIGNED_INT, (void*)(0+0*sizeof(GL_UNSIGNED_INT)), world->num_pellets);
     
     // Bots
-    //glBindVertexArray(vao_bots);
-    //glDrawElementsInstanced(GL_TRIANGLES, 10, GL_UNSIGNED_INT, (void*)(0+0*sizeof(GL_UNSIGNED_INT)), world->num_bots);
-    
-    /******************* Test *******************/
     glBindVertexArray(vao_test);
     int b;
     for(b = 0; b < world->num_bots; ++b)
@@ -401,7 +389,7 @@ int main()
       
       // Positions
       glBindBuffer(GL_ARRAY_BUFFER, tbo_test);
-      glBufferData(GL_ARRAY_BUFFER, 2 * 3 * world->bots[b].num_parts * sizeof *spike_positions, spike_positions, GL_STATIC_DRAW);
+      glBufferData(GL_ARRAY_BUFFER, 2 * 3 * world->bots[b].num_spikes * sizeof *spike_positions, spike_positions, GL_STATIC_DRAW);
       
       // Colours
       glBindBuffer(GL_ARRAY_BUFFER, cbo_test);
@@ -643,7 +631,6 @@ int main()
       }
       /*** Eyes ***/
     }
-    /******************* Test *******************/
     
     glfwPollEvents();
     glfwSwapBuffers(window);

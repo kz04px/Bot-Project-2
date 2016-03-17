@@ -7,14 +7,17 @@ int world_simulate_frame(s_world *world)
   int b;
   for(b = 0; b < world->num_bots; ++b)
   {
+    int p;
+    int e;
+    int i;
+    
+    // Update position
     world->bots[b].parts[0].angle += world->bots[b].turn_rate*RAND_BETWEEN(-1.0, 1.0);
     world->bots[b].parts[0].x += world->bots[b].speed*sin(world->bots[b].parts[0].angle);
     world->bots[b].parts[0].y += world->bots[b].speed*cos(world->bots[b].parts[0].angle);
     
-    float spacer = 0.3;
-    
     // Update tail positions
-    int i;
+    float spacer = 0.3;
     for(i = 1; i < world->bots[b].num_parts; ++i)
     {
       float dx = world->bots[b].parts[i-1].x - world->bots[b].parts[i].x;
@@ -28,23 +31,60 @@ int world_simulate_frame(s_world *world)
       spacer *= 0.9;
     }
     
-    // Eat pellets
-    int p;
+    // Eating
     for(p = 0; p < world->num_pellets; ++p)
     {
       float dx = world->bots[b].parts[0].x - world->pellets[p].x;
-      float dy = world->bots[b].parts[0].y - world->pellets[p].y;
-      
       if(fabs(dx) > 10.0) {continue;}
-      if(fabs(dy) > 10.0) {continue;}
       
+      float dy = world->bots[b].parts[0].y - world->pellets[p].y;
+      if(fabs(dy) > 10.0) {continue;}
+        
       float dist = sqrt(dx*dx + dy*dy);
       
-      if(dist > 0.25) {continue;}
-      
-      world->bots[b].energy += world->pellets[p].energy;
-      world_pellet_remove(world, p);
-      world_pellet_add(world);
+      if(dist <= world->bots[b].parts[0].radius)
+      //if(dist < 0.25)
+      {
+        world->bots[b].energy += world->pellets[p].energy;
+        world_pellet_remove(world, p);
+        world_pellet_add(world);
+        p--;
+        continue;
+      }
+    }
+    
+    // Eyes
+    for(p = 0; p < world->num_pellets; ++p)
+    {
+      for(e = 0; e < world->bots[b].num_eyes; ++e)
+      {
+        int part = world->bots[b].eyes[e].part;
+        
+        float dx = world->bots[b].parts[part].x - world->pellets[p].x;
+        if(fabs(dx) > 10.0) {continue;}
+        
+        float dy = world->bots[b].parts[part].y - world->pellets[p].y;
+        if(fabs(dy) > 10.0) {continue;}
+        
+        float dist = sqrt(dx*dx + dy*dy);
+        float angle = atan2(dx, dy);
+        float angle_dif = fabs(angle) - (world->bots[b].parts[part].angle + world->bots[b].eyes[e].angle);
+        
+        // Reset inputs
+        world->bots[b].eyes[e].str = world->bots[b].eyes[e].dist;
+        world->bots[b].eyes[e].r = 0.0;
+        world->bots[b].eyes[e].g = 0.0;
+        world->bots[b].eyes[e].b = 0.0;
+        
+        if(dist > world->bots[b].eyes[e].dist) {continue;}
+        if(fabs(angle_dif) > world->bots[b].eyes[e].fov/2) {continue;}
+        if(1.0 - dist/world->bots[b].eyes[e].dist > world->bots[b].eyes[e].str) {continue;}
+        
+        world->bots[b].eyes[e].str = 1.0 - dist/world->bots[b].eyes[e].dist;
+        world->bots[b].eyes[e].r = world->pellets[p].r;
+        world->bots[b].eyes[e].g = world->pellets[p].g;
+        world->bots[b].eyes[e].b = world->pellets[p].b;
+      }
     }
     
     // Edge detection
@@ -106,7 +146,6 @@ int world_bot_add(s_world *world)
   {
     if(i == 0)
     {
-      world->bots[b].parts[0].radius = spacer;
       world->bots[b].parts[0].angle = RAND_BETWEEN(0.0, 2*M_PI);
       world->bots[b].parts[0].x = x;
       world->bots[b].parts[0].y = y;
@@ -120,35 +159,28 @@ int world_bot_add(s_world *world)
       spacer *= 0.9;
     }
     
+    world->bots[b].parts[i].radius = spacer;
     world->bots[b].parts[i].r = red - (float)i/world->bots[b].num_parts;
     world->bots[b].parts[i].g = green - (float)i/world->bots[b].num_parts;
     world->bots[b].parts[i].b = blue - (float)i/world->bots[b].num_parts;
   }
   
   // Eyes
-  world->bots[b].num_eyes = 2;
-  float eye_total_angle = 2.0*M_PI/6;
-  int e;
-  for(e = 0; e < world->bots[b].num_eyes; ++e)
-  {
-    world->bots[b].eyes[e].part = 0;
-    world->bots[b].eyes[e].angle = (e - 0.5*(world->bots[b].num_eyes-1))*eye_total_angle;
-    world->bots[b].eyes[e].fov = 2.0*M_PI/5;
-    world->bots[b].eyes[e].dist = 3.0;
-    
-    world->bots[b].eyes[e].r = 1.0;
-    world->bots[b].eyes[e].g = 0.0;
-    world->bots[b].eyes[e].b = 1.0;
-  }
+  bot_eye_add(&world->bots[b], 0, 1*(2.0*M_PI/12), 2.0*M_PI/5, 3.0);
+  bot_eye_add(&world->bots[b], 0, 11*(2.0*M_PI/12), 2.0*M_PI/5, 3.0);
+  //bot_eye_add(&world->bots[b], 1, 1*(2.0*M_PI/4), 2.0*M_PI/4, 1.0);
+  //bot_eye_add(&world->bots[b], 1, 3*(2.0*M_PI/4), 2.0*M_PI/4, 1.0);
   
-  // Spikes
+  // Spikes (Caterpillar look)
   bot_spike_add(&world->bots[b], 0, 0.5, 0.0);
-  
   bot_spike_add(&world->bots[b], 1, 0.4, 5*(2.0*M_PI/6) );
   bot_spike_add(&world->bots[b], 1, 0.4, 1*(2.0*M_PI/6) );
-  
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 0.25, 3*(2.0*M_PI/7) );
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 0.25, 4*(2.0*M_PI/7) );
+  for(i = 1; i < world->bots[b].num_parts; ++i)
+  {
+    bot_spike_add(&world->bots[b], i, 1.5*world->bots[b].parts[i].radius, 4*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], i, 1.5*world->bots[b].parts[i].radius, 2*(2.0*M_PI/6));
+  }
+  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 2.0*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2.0*M_PI/2);
   
   world->num_bots++;
   id++;
@@ -231,14 +263,13 @@ int world_init(s_world *world)
   assert(world != NULL);
   
   world->seed = time(0);
-  world->w = 60.0;
-  world->h = 30.0;
+  world->w = 120.0;
+  world->h = 60.0;
   world->num_bots = 0;
   world->num_pellets = 0;
   world->grid_w = 20;
   world->grid_h = 10;
   
-  //world->grid = malloc(world->grid_w * world->grid_h * sizeof(s_tile));
   srand(world->seed);
   world->grid = malloc(world->grid_w * sizeof(s_tile*));
   
