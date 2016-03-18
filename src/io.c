@@ -25,7 +25,7 @@ int load_settings(const char *filename)
     }
     else if(strncmp(setting, "fullscreen", 10) == 0)
     {
-      if(strncmp(value, "GL_TRUE", 4) == 0)
+      if(strncmp(value, "true", 4) == 0)
       {
         window_fullscreen = GL_TRUE;
       }

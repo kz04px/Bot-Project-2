@@ -23,7 +23,8 @@
 #define MAX_EYES    16
 #define MAX_SPIKES  32
 
-#define DEG_TO_RAD(x) (x*(3.142/180.0))
+#define DEG_TO_RAD(x) (x*0.0174532925)
+#define RAD_TO_DEG(x) (x/0.0174532925)
 #define RAND_BETWEEN(a, b) ((b-a)*((float)rand()/RAND_MAX)+a)
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
@@ -43,19 +44,6 @@ typedef struct
 
 typedef struct
 {
-  float radius;
-  float angle;
-  float x;
-  float y;
-  
-  float r;
-  float g;
-  float b;
-} s_part;
-
-typedef struct
-{
-  int part;
   float angle;
   float fov;
   float dist;
@@ -68,7 +56,6 @@ typedef struct
 
 typedef struct
 {
-  int part;
   float angle;
   float length;
   
@@ -79,16 +66,31 @@ typedef struct
 
 typedef struct
 {
-  int id;
-  int energy;
-  float speed;
-  float turn_rate;
+  float radius;
+  float angle;
+  float x;
+  float y;
   
   int num_spikes;
   s_spike spikes[MAX_SPIKES];
   
   int num_eyes;
   s_eye eyes[MAX_EYES];
+  
+  float r;
+  float g;
+  float b;
+} s_part;
+
+typedef struct
+{
+  int id;
+  int energy;
+  float speed;
+  float turn_rate;
+  
+  int total_eyes;
+  int total_spikes;
   
   int num_parts;
   s_part parts[MAX_PARTS];
@@ -143,6 +145,12 @@ int buffers_init_bots(s_buffers* buffers);
 int buffers_fill_background(s_world* world, s_buffers* buffers);
 int buffers_fill_pellets(s_world* world, s_buffers* buffers);
 int buffers_fill_bots(s_world* world);
+
+int buffer_fill_bot_cones(s_part *part, s_buffers *buffers);
+int buffer_fill_bot_spikes(s_part *part, s_buffers *buffers);
+int buffer_fill_bot_body(s_part *part, s_buffers *buffers, float scale);
+int buffer_fill_bot_eye_borders(s_part *part, s_buffers *buffers);
+int buffer_fill_bot_eyes(s_part *part, s_buffers *buffers);
 
 // bot.c
 int bot_eye_add(s_bot* bot, int part, float angle, float fov, float dist);

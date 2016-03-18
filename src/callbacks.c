@@ -16,13 +16,10 @@ void glfw_cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
   static double xlast = 0;
   static double ylast = 0;
   
-  //printf("%.4g %.4g\n", xpos, ypos);
   if(camera_moving == 1)
   {
     camera_x -= 40.0*(xpos - xlast)/window_width*camera_zoom;
     camera_y += 40.0*(ypos - ylast)/window_height*camera_zoom;
-    //camera_x -= 0.0375*(xpos - xlast)/((float)window_width/1920)*camera_zoom;
-    //camera_y += 0.0375*(ypos - ylast)/((float)window_height/1080)*camera_zoom;
   }
   
   xlast = xpos;
@@ -36,8 +33,6 @@ void glfw_mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffs
   
        if(camera_zoom < 0.05) {camera_zoom = 0.05;}
   else if(camera_zoom > 20.0) {camera_zoom = 20.0;}
-  
-  //printf("Zoom: %f\n", camera_zoom);
 }
 
 void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

@@ -2,7 +2,5 @@ To do:
 - Add hearing
 - Add a physics thread
 - Add overlay
-- 
-
-Current:
+- Add bot groups
 - 
