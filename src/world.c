@@ -27,6 +27,7 @@ int world_simulate_frame(s_world *world)
     int p;
     int e;
     int i;
+    int s;
     int ear;
     int part;
     
@@ -72,8 +73,10 @@ int world_simulate_frame(s_world *world)
     
     for(part = 0; part < world->bots[b].num_parts; ++part)
     {
-      // Skip looking if body part has no eyes
-      if(world->bots[b].parts[part].num_eyes == 0 && world->bots[b].parts[part].num_ears == 0) {continue;}
+      // Skip the body part has no eyes or ears
+      if(world->bots[b].parts[part].num_eyes == 0 &&
+         world->bots[b].parts[part].num_ears == 0 &&
+         world->bots[b].parts[part].num_spikes == 0) {continue;}
       
       // Pellets
       for(p = 0; p < world->num_pellets; ++p)
@@ -116,14 +119,12 @@ int world_simulate_frame(s_world *world)
       {
         if(b == b2) {continue;}
         
-        float dx_test = world->bots[b].parts[0].x - world->bots[b2].parts[0].x;
-        if(fabs(dx_test) > 2*MAX_VIEW_DIST) {continue;}
-        
-        float dy_test = world->bots[b].parts[0].y - world->bots[b2].parts[0].y;
-        if(fabs(dy_test) > 2*MAX_VIEW_DIST) {continue;}
-        
         float dx = world->bots[b].parts[part].x - world->bots[b2].parts[0].x;
+        if(fabs(dx) > 2*MAX_VIEW_DIST) {continue;}
+        
         float dy = world->bots[b].parts[part].y - world->bots[b2].parts[0].y;
+        if(fabs(dy) > 2*MAX_VIEW_DIST) {continue;}
+        
         float dist = sqrt(dx*dx + dy*dy);
         
         float dx_last = world->bots[b].parts[part].x - world->bots[b2].parts[world->bots[b2].num_parts-1].x;
@@ -138,6 +139,28 @@ int world_simulate_frame(s_world *world)
         }
         
         float angle = atan2(dx, dy) + M_PI;
+        
+        // Spikes
+        for(s = 0; s < world->bots[b].parts[part].num_spikes; ++s)
+        {
+          if(dist > world->bots[b].parts[part].spikes[s].length) {continue;}
+          
+          float absolute_angle = world->bots[b].parts[part].angle + world->bots[b].parts[part].spikes[s].angle;
+          NORMALISE_RAD(absolute_angle);
+          
+          float angle_dif = angle_difference(angle, absolute_angle);
+          NORMALISE_RAD(angle_dif);
+          NORMALISE_RAD(angle_dif);
+          NORMALISE_RAD(angle_dif);
+          
+          if(angle_dif > 2.0*M_PI/32) {continue;}
+          
+          world->bots[b2].health--;
+          world->bots[b].energy++;
+          world->bots[b].parts[part].spikes[s].r = 1.0;
+          world->bots[b].parts[part].spikes[s].g = 0.0;
+          world->bots[b].parts[part].spikes[s].b = 0.0;
+        }
         
         // Ears
         for(ear = 0; ear < world->bots[b].parts[part].num_ears; ++ear)
@@ -251,8 +274,8 @@ int world_bot_add(s_world *world)
   world->bots[b].id = id;
   world->bots[b].energy = 100;
   world->bots[b].health = 100;
-  world->bots[b].speed = 0.01;
-  world->bots[b].turn_rate = 0.01;
+  world->bots[b].speed = 0.01*RAND_BETWEEN(0.8, 1.0);
+  world->bots[b].turn_rate = 0.01*RAND_BETWEEN(0.8, 1.0);
   world->bots[b].num_parts = MAX_PARTS - rand()%3;
   world->bots[b].total_eyes = 0;
   world->bots[b].total_spikes = 0;
@@ -273,12 +296,13 @@ int world_bot_add(s_world *world)
     }
     else
     {
-      world->bots[b].parts[part].angle = world->bots[b].parts[part-1].angle + RAND_BETWEEN(-0.5, 0.5); //RAND_BETWEEN(0.0, 2*M_PI);
+      world->bots[b].parts[part].angle = world->bots[b].parts[part-1].angle + RAND_BETWEEN(-2.0*M_PI/16, 2.0*M_PI/16);
       world->bots[b].parts[part].x = world->bots[b].parts[part-1].x - spacer*sin(world->bots[b].parts[part].angle);
       world->bots[b].parts[part].y = world->bots[b].parts[part-1].y - spacer*cos(world->bots[b].parts[part].angle);
       
       spacer *= 0.9;
     }
+    NORMALISE_RAD(world->bots[b].parts[part].angle);
     
     world->bots[b].parts[part].num_eyes = 0;
     world->bots[b].parts[part].num_spikes = 0;
@@ -289,30 +313,33 @@ int world_bot_add(s_world *world)
     world->bots[b].parts[part].b = blue - (float)part/world->bots[b].num_parts;
   }
   
+  float multiplier;
+  
   // Eyes
-  bot_eye_add(&world->bots[b], 0, 1*(2.0*M_PI/12), 2.0*M_PI/5, 3.0);
-  bot_eye_add(&world->bots[b], 0, 11*(2.0*M_PI/12), 2.0*M_PI/5, 3.0);
-  //bot_eye_add(&world->bots[b], 1, 1*(2.0*M_PI/4), 2.0*M_PI/4, 1.0);
-  //bot_eye_add(&world->bots[b], 1, 3*(2.0*M_PI/4), 2.0*M_PI/4, 1.0);
-  bot_eye_add(&world->bots[b], world->bots[b].num_parts-1, M_PI, 2.0*M_PI/4, 1.5);
+  multiplier = RAND_BETWEEN(0.8, 1.0);
+  bot_eye_add(&world->bots[b], 0, 1*(2.0*M_PI/12), 2.0*M_PI/5, 3.0*multiplier);
+  bot_eye_add(&world->bots[b], 0, 11*(2.0*M_PI/12), 2.0*M_PI/5, 3.0*multiplier);
+  bot_eye_add(&world->bots[b], world->bots[b].num_parts-1, M_PI, 2.0*M_PI/4, 1.5*multiplier);
   
   // Spikes (Caterpillar look)
-  bot_spike_add(&world->bots[b], 0, 0.5, 0.0);
-  bot_spike_add(&world->bots[b], 0, 0.4, 5*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], 0, 0.4, 1*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], 1, 0.4, 5*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], 1, 0.4, 1*(2.0*M_PI/6));
+  multiplier = RAND_BETWEEN(0.8, 1.0);
+  bot_spike_add(&world->bots[b], 0, 0.8*multiplier, 0.0);
+  bot_spike_add(&world->bots[b], 0, 0.6*multiplier, 5*(2.0*M_PI/6));
+  bot_spike_add(&world->bots[b], 0, 0.6*multiplier, 1*(2.0*M_PI/6));
+  bot_spike_add(&world->bots[b], 1, 0.6*multiplier, 5*(2.0*M_PI/6));
+  bot_spike_add(&world->bots[b], 1, 0.6*multiplier, 1*(2.0*M_PI/6));
   for(i = 1; i < world->bots[b].num_parts-1; ++i)
   {
-    bot_spike_add(&world->bots[b], i, 1.5*world->bots[b].parts[i].radius, 4*(2.0*M_PI/6));
-    bot_spike_add(&world->bots[b], i, 1.5*world->bots[b].parts[i].radius, 2*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], i, 2.0*multiplier*world->bots[b].parts[i].radius, 4*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], i, 2.0*multiplier*world->bots[b].parts[i].radius, 2*(2.0*M_PI/6));
   }
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*world->bots[b].parts[world->bots[b].num_parts-1].radius, 4*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 5.0*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2.0*M_PI/2);
+  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 4*(2.0*M_PI/6));
+  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2*(2.0*M_PI/6));
+  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 5.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2.0*M_PI/2);
   
   // Ears
-  bot_ear_add(&world->bots[b], 0, 5.0);
+  multiplier = RAND_BETWEEN(0.8, 1.0);
+  bot_ear_add(&world->bots[b], 0, 5.0*multiplier);
   
   world->num_bots++;
   id++;
@@ -401,8 +428,8 @@ int world_init(s_world *world)
   world->h = 60.0;
   world->num_bots = 0;
   world->num_pellets = 0;
-  world->grid_w = 20;
-  world->grid_h = 10;
+  world->grid_w = 40;
+  world->grid_h = 20;
   
   srand(world->seed);
   world->grid = malloc(world->grid_w * sizeof(s_tile*));

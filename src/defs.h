@@ -14,8 +14,8 @@
 
 #define MAX_BOTS            128
 #define MAX_PELLETS         512
-#define EYE_CONE_ACCURACY     8
-#define EAR_RANGE_ACCURACY   16
+#define EYE_CONE_ACCURACY    16
+#define EAR_RANGE_ACCURACY   32
 
 #define MIN_VIEW_DIST  1.0
 #define MAX_VIEW_DIST  5.0
