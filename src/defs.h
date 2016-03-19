@@ -12,9 +12,10 @@
 #include <math.h>
 #include <time.h>
 
-#define MAX_BOTS 128
-#define MAX_PELLETS 512
-#define EYE_CONE_ACCURACY 8
+#define MAX_BOTS            128
+#define MAX_PELLETS         512
+#define EYE_CONE_ACCURACY     8
+#define EAR_RANGE_ACCURACY   16
 
 #define MIN_VIEW_DIST  1.0
 #define MAX_VIEW_DIST  5.0
@@ -22,6 +23,7 @@
 #define MAX_PARTS   12
 #define MAX_EYES    16
 #define MAX_SPIKES  32
+#define MAX_EARS     1
 
 #define DEG_TO_RAD(x) (x*0.0174532925)
 #define RAD_TO_DEG(x) (x/0.0174532925)
@@ -66,6 +68,13 @@ typedef struct
 
 typedef struct
 {
+  float dist;
+  
+  float str;
+} s_ear;
+
+typedef struct
+{
   float radius;
   float angle;
   float x;
@@ -77,6 +86,9 @@ typedef struct
   int num_eyes;
   s_eye eyes[MAX_EYES];
   
+  int num_ears;
+  s_ear ears[MAX_EARS];
+  
   float r;
   float g;
   float b;
@@ -86,11 +98,13 @@ typedef struct
 {
   int id;
   int energy;
+  int health;
   float speed;
   float turn_rate;
   
   int total_eyes;
   int total_spikes;
+  int total_ears;
   
   int num_parts;
   s_part parts[MAX_PARTS];
@@ -151,10 +165,12 @@ int buffer_fill_bot_spikes(s_part *part, s_buffers *buffers);
 int buffer_fill_bot_body(s_part *part, s_buffers *buffers, float scale);
 int buffer_fill_bot_eye_borders(s_part *part, s_buffers *buffers);
 int buffer_fill_bot_eyes(s_part *part, s_buffers *buffers);
+int buffer_fill_bot_ears(s_part *part, s_buffers *buffers);
 
 // bot.c
 int bot_eye_add(s_bot* bot, int part, float angle, float fov, float dist);
 int bot_spike_add(s_bot* bot, int part, float length, float angle);
+int bot_ear_add(s_bot* bot, int part, float dist);
 
 // world.c
 int world_simulate_frame(s_world *world);

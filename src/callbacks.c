@@ -18,7 +18,7 @@ void glfw_cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
   
   if(camera_moving == 1)
   {
-    camera_x -= 40.0*(xpos - xlast)/window_width*camera_zoom;
+    camera_x -= 40.0*(xpos - xlast)/window_width*camera_zoom*window_ratio;
     camera_y += 40.0*(ypos - ylast)/window_height*camera_zoom;
   }
   

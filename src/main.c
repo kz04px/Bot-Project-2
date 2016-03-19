@@ -123,6 +123,7 @@ int main()
   #ifndef NDEBUG
   world_print_details(world);
   
+  /*
   #define NUM_FRAMES 10000
   double t0 = glfwGetTime();
   for(i = 0; i < NUM_FRAMES; ++i)
@@ -136,6 +137,7 @@ int main()
   printf("Total time: %.2gs\n", t1-t0);
   printf("Time per frame: %.4gns\n", (t1-t0)/NUM_FRAMES*1000.0*1000.0);
   printf("\n");
+  */
   #endif
   
   // Does the GPU support current FBO configuration?
@@ -209,6 +211,10 @@ int main()
         {
           glDrawArrays(GL_LINES, 2 * (EYE_CONE_ACCURACY + 2)*i, 2*(EYE_CONE_ACCURACY + 2));
         }
+        
+        // Draw ear ranges
+        buffer_fill_bot_ears(&world->bots[b].parts[part], &buffers_bots);
+        glDrawArrays(GL_LINES, 0, 2*EAR_RANGE_ACCURACY*world->bots[b].parts[part].num_ears);
         
         // Draw spikes
         buffer_fill_bot_spikes(&world->bots[b].parts[part], &buffers_bots);

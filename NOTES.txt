@@ -1,6 +1,7 @@
 To do:
-- Add hearing
 - Add a physics thread
-- Add overlay
+- Add an overlay
 - Add bot groups
+- Add speakers?
+- Add save loading
 - 

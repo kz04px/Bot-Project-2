@@ -380,6 +380,66 @@ int buffer_fill_bot_spikes(s_part *part, s_buffers *buffers)
   return 0;
 }
 
+int buffer_fill_bot_ears(s_part *part, s_buffers *buffers)
+{
+  assert(part != NULL);
+  assert(buffers != NULL);
+  
+  if(part->num_ears == 0) {return 0;}
+  
+  float ear_range_vertices[2 * 2 * EAR_RANGE_ACCURACY * part->num_ears];
+  float ear_range_positions[2 * 2 * EAR_RANGE_ACCURACY * part->num_ears];
+  float ear_range_colours[3 * 2 * EAR_RANGE_ACCURACY * part->num_ears];
+  float ear_range_rotations[1 * 2 * EAR_RANGE_ACCURACY * part->num_ears];
+  
+  float angle = 2.0*M_PI/EAR_RANGE_ACCURACY;
+  
+  int ear;
+  for(ear = 0; ear < part->num_ears; ++ear)
+  {
+    int i;
+    for(i = 0; i < EAR_RANGE_ACCURACY; ++i)
+    {
+      // pn
+      ear_range_vertices[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 0] = part->ears[ear].dist * sin(i*angle);
+      ear_range_vertices[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 1] = part->ears[ear].dist * cos(i*angle);
+      ear_range_positions[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 0] = part->x;
+      ear_range_positions[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 1] = part->y;
+      ear_range_colours[6 * (EAR_RANGE_ACCURACY)*ear + 6*i + 0] = part->ears[ear].str;
+      ear_range_colours[6 * (EAR_RANGE_ACCURACY)*ear + 6*i + 1] = 0.0;
+      ear_range_colours[6 * (EAR_RANGE_ACCURACY)*ear + 6*i + 2] = 0.0;
+      ear_range_rotations[2 * (EAR_RANGE_ACCURACY)*ear + 2*i + 0] = part->angle;
+      // pn+1
+      ear_range_vertices[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 2] = part->ears[ear].dist * sin((i+1)*angle);
+      ear_range_vertices[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 3] = part->ears[ear].dist * cos((i+1)*angle);
+      ear_range_positions[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 2] = part->x;
+      ear_range_positions[4 * (EAR_RANGE_ACCURACY)*ear + 4*i + 3] = part->y;
+      ear_range_colours[6 * (EAR_RANGE_ACCURACY)*ear + 6*i + 3] = part->ears[ear].str;
+      ear_range_colours[6 * (EAR_RANGE_ACCURACY)*ear + 6*i + 4] = 0.0;
+      ear_range_colours[6 * (EAR_RANGE_ACCURACY)*ear + 6*i + 5] = 0.0;
+      ear_range_rotations[2 * (EAR_RANGE_ACCURACY)*ear + 2*i + 1] = part->angle;
+    }
+  }
+  
+  // Vertices
+  glBindBuffer(GL_ARRAY_BUFFER, buffers->vbo);
+  glBufferData(GL_ARRAY_BUFFER, 3*4 * EAR_RANGE_ACCURACY * part->num_ears * sizeof *ear_range_vertices, ear_range_vertices, GL_STATIC_DRAW);
+  
+  // Positions
+  glBindBuffer(GL_ARRAY_BUFFER, buffers->tbo);
+  glBufferData(GL_ARRAY_BUFFER, 3*4 * EAR_RANGE_ACCURACY * part->num_ears * sizeof *ear_range_positions, ear_range_positions, GL_STATIC_DRAW);
+  
+  // Colours
+  glBindBuffer(GL_ARRAY_BUFFER, buffers->cbo);
+  glBufferData(GL_ARRAY_BUFFER, 3*6 * EAR_RANGE_ACCURACY * part->num_ears * sizeof *ear_range_colours, ear_range_colours, GL_STATIC_DRAW);
+  
+  // Rotations
+  glBindBuffer(GL_ARRAY_BUFFER, buffers->rbo);
+  glBufferData(GL_ARRAY_BUFFER, 3*2 * EAR_RANGE_ACCURACY * part->num_ears * sizeof *ear_range_rotations, ear_range_rotations, GL_STATIC_DRAW);
+  
+  return 0;
+}
+
 int buffer_fill_bot_eyes(s_part *part, s_buffers *buffers)
 {
   assert(part != NULL);

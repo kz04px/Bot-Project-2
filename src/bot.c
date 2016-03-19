@@ -40,3 +40,19 @@ int bot_spike_add(s_bot* bot, int part, float length, float angle)
   
   return 0;
 }
+
+int bot_ear_add(s_bot* bot, int part, float dist)
+{
+  assert(bot != NULL);
+  
+  if(bot->parts[part].num_ears >= MAX_EARS) {return -1;}
+  
+  int ear = bot->parts[part].num_ears;
+  
+  bot->parts[part].ears[ear].dist = dist;
+  
+  bot->parts[part].num_ears++;
+  bot->total_ears++;
+  
+  return 0;
+}
