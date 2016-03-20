@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include "defs.h"
 #include "matrix.h"
 
@@ -102,6 +103,7 @@ int main()
   //glDepthFunc(GL_LESS);
 	//glEnable(GL_TEXTURE_2D);
   glPointSize(3.0);
+  glLineWidth(2.0);
   
   // Create shaders
   GLuint vs = create_shader("shaders//vertex_shader.glsl", GL_VERTEX_SHADER);
@@ -136,6 +138,7 @@ int main()
   printf("Frames: %i\n", NUM_FRAMES);
   printf("Total time: %.2gs\n", t1-t0);
   printf("Time per frame: %.4gns\n", (t1-t0)/NUM_FRAMES*1000.0*1000.0);
+  printf("Max physics FPS: %i\n", (int)(NUM_FRAMES/(t1-t0)));
   printf("\n");
   */
   #endif
@@ -166,6 +169,15 @@ int main()
   camera_y = world->h/2;
   camera_zoom = 1.2;
   
+  // Create simulation thread
+  pthread_t sim_thread;
+  sim_data.fps_max = 60;
+  sim_data.fps = 0;
+  sim_data.paused = 0;
+  sim_data.quit = 0;
+  sim_data.world = world;
+  pthread_create(&sim_thread, NULL, simulate_world, &sim_data);
+  
   // Find uniform
   GLint loc_vp_matrix = glGetUniformLocation(shader_program, "vp_matrix");
   if(loc_vp_matrix < 0) {print_log("ERROR: Could not find uniform vp_matrix\n"); return -1;}
@@ -174,16 +186,16 @@ int main()
   glClearColor(0.6, 0.6, 0.8, 1.0);
   while(!glfwWindowShouldClose(window))
   {
-    // Simulate
-    world_simulate_frame(world);
-    
     // Set uniform
     s_mat4 vp_matrix = ortho(-20.0*window_ratio*camera_zoom + camera_x,20.0*window_ratio*camera_zoom + camera_x,
                              -20.0*camera_zoom + camera_y,20.0*camera_zoom + camera_y,
                              0.0,1.0);
     glUniformMatrix4fv(loc_vp_matrix, 1, GL_FALSE, vp_matrix.m);
     
-    update_fps_counter(window);
+    //update_fps_counter(window);
+    char tmp[128];
+    sprintf(tmp, "Bot Project 2 - %i fps", sim_data.fps);
+    glfwSetWindowTitle(window, tmp);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shader_program);
@@ -202,6 +214,8 @@ int main()
     int b;
     for(b = 0; b < world->num_bots; ++b)
     {
+      if(world->bots[b].health <= 0) {continue;}
+      
       int part;
       for(part = world->bots[b].num_parts-1; part >= 0; --part)
       {
@@ -246,6 +260,8 @@ int main()
     glfwSwapBuffers(window);
   }
   
+  sim_data.quit = 1;
+  pthread_join(sim_thread, NULL);
   glfwTerminate();
   return 0;
 }

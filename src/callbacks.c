@@ -64,6 +64,36 @@ void glfw_keyboard_callback(GLFWwindow* window, int key, int scancode, int actio
     case GLFW_KEY_ESCAPE:
       glfwSetWindowShouldClose(window, 1);
       break;
+    case GLFW_KEY_SPACE:
+      if(action == 1)
+      {
+        sim_data.paused = 1 - sim_data.paused;
+      }
+      break;
+    case GLFW_KEY_1:
+      if(action == 1)
+      {
+        sim_data.fps_max = 30;
+      }
+      break;
+    case GLFW_KEY_2:
+      if(action == 1)
+      {
+        sim_data.fps_max = 60;
+      }
+      break;
+    case GLFW_KEY_3:
+      if(action == 1)
+      {
+        sim_data.fps_max = 120;
+      }
+      break;
+    case GLFW_KEY_4:
+      if(action == 1)
+      {
+        sim_data.fps_max = -1;
+      }
+      break;
     case GLFW_KEY_F2:
       screenshot_tga("test.tga", window_width, window_height);
       break;

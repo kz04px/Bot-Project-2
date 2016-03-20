@@ -11,11 +11,15 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
+#include "fnn.h"
 
 #define MAX_BOTS            128
 #define MAX_PELLETS         512
 #define EYE_CONE_ACCURACY    16
 #define EAR_RANGE_ACCURACY   32
+#define BOT_START_ENERGY   1000
+#define BOT_START_HEALTH    500
+#define GEN_MAX_FRAMES     2000
 
 #define MIN_VIEW_DIST  1.0
 #define MAX_VIEW_DIST  5.0
@@ -38,7 +42,6 @@ typedef struct
   float y;
   float size;
   int energy;
-  
   float r;
   float g;
   float b;
@@ -49,7 +52,7 @@ typedef struct
   float angle;
   float fov;
   float dist;
-  
+  // Inputs
   float str;
   float r;
   float g;
@@ -60,7 +63,6 @@ typedef struct
 {
   float angle;
   float length;
-  
   float r;
   float g;
   float b;
@@ -69,7 +71,7 @@ typedef struct
 typedef struct
 {
   float dist;
-  
+  // Inputs
   float str;
 } s_ear;
 
@@ -80,6 +82,10 @@ typedef struct
   float x;
   float y;
   
+  float r;
+  float g;
+  float b;
+  
   int num_spikes;
   s_spike spikes[MAX_SPIKES];
   
@@ -88,19 +94,17 @@ typedef struct
   
   int num_ears;
   s_ear ears[MAX_EARS];
-  
-  float r;
-  float g;
-  float b;
 } s_part;
 
 typedef struct
 {
   int id;
+  int age;
   int energy;
   int health;
   float speed;
   float turn_rate;
+  s_fnn fnn;
   
   int total_eyes;
   int total_spikes;
@@ -123,6 +127,7 @@ typedef struct
 {
   int seed;
   int frame;
+  int generation;
   float w;
   float h;
   
@@ -140,6 +145,15 @@ typedef struct
 
 typedef struct
 {
+  int fps_max;
+  int fps;
+  int paused;
+  int quit;
+  s_world *world;
+} s_sim_data;
+
+typedef struct
+{
   GLuint vao, ibo, vbo, tbo, cbo, rbo;
 } s_buffers;
 
@@ -150,6 +164,10 @@ int window_width;
 int window_height;
 float window_ratio;
 int window_fullscreen;
+s_sim_data sim_data;
+
+// simulation.c
+void *simulate_world(void *ptr);
 
 // buffers.c
 int buffers_init_background(s_buffers* buffers);

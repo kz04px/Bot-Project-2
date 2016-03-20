@@ -1,8 +1,6 @@
 To do:
-- Add a physics thread
 - Add an overlay
 - Add bot groups
 - Add speakers?
 - Add save loading
-- Add the brains
 - 
