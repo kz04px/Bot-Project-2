@@ -1,5 +1,102 @@
 #include "defs.h"
 
+int bot_print(s_bot *bot)
+{
+  assert(bot != NULL);
+  /*
+  printf("id: %i\n", bot->id);
+  printf("x: %.2f\n", bot->parts[0].x);
+  printf("y: %.2f\n", bot->parts[0].y);
+  printf("RGB(%f, %f, %f)\n", bot->parts[0].r, bot->parts[0].g, bot->parts[0].b);
+  printf("age: %i\n", bot->age);
+  printf("energy: %i\n", bot->energy);
+  printf("health: %i\n", bot->health);
+  printf("speed: %f\n", bot->speed);
+  printf("turn_rate: %f\n", bot->turn_rate);
+  printf("total_eyes: %i\n", bot->total_eyes);
+  printf("total_spikes: %i\n", bot->total_spikes);
+  printf("total_ears: %i\n", bot->total_ears);
+  printf("num_parts: %i\n", bot->num_parts);
+  printf("brain: %p\n", &bot->fnn);
+  */
+  fnn_print(&bot->fnn);
+  printf("\n");
+  
+  return 0;
+}
+/*
+typedef struct
+{
+  float radius;
+  float angle;
+  float x;
+  float y;
+  
+  float r;
+  float g;
+  float b;
+  
+  int num_spikes;
+  s_spike spikes[MAX_SPIKES];
+  
+  int num_eyes;
+  s_eye eyes[MAX_EYES];
+  
+  int num_ears;
+  s_ear ears[MAX_EARS];
+} s_part;
+
+typedef struct
+{
+  int id;
+  int age;
+  int energy;
+  int health;
+  float speed;
+  float turn_rate;
+  s_fnn fnn;
+  
+  int total_eyes;
+  int total_spikes;
+  int total_ears;
+  
+  int num_parts;
+  s_part parts[MAX_PARTS];
+} s_bot;
+*/
+
+int bot_copy(s_bot* dest, s_bot* src)
+{
+  assert(dest != NULL);
+  assert(src != NULL);
+  
+  dest->id = src->id;
+  dest->age = src->age;
+  dest->energy = src->energy;
+  dest->health = src->health;
+  dest->speed = src->speed;
+  dest->turn_rate = src->turn_rate;
+  
+  // Brain
+  int r;
+  r = fnn_neurons_copy(&dest->fnn, &src->fnn);
+  if(r != 0) {return -1;}
+  
+  dest->total_eyes = src->total_eyes;
+  dest->total_spikes = src->total_spikes;
+  dest->total_ears = src->total_ears;
+  
+  // Parts
+  dest->num_parts = src->num_parts;
+  int p;
+  for(p = 0; p < dest->num_parts; ++p)
+  {
+    dest->parts[p] = src->parts[p];
+  }
+  
+  return 0;
+}
+
 int bot_eye_add(s_bot* bot, int part, float angle, float fov, float dist)
 {
   assert(bot != NULL);

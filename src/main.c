@@ -182,6 +182,9 @@ int main()
   GLint loc_vp_matrix = glGetUniformLocation(shader_program, "vp_matrix");
   if(loc_vp_matrix < 0) {print_log("ERROR: Could not find uniform vp_matrix\n"); return -1;}
   
+  double current_seconds = 0.0;
+  double last_seconds = glfwGetTime();
+  
   // Drawing
   glClearColor(0.6, 0.6, 0.8, 1.0);
   while(!glfwWindowShouldClose(window))
@@ -193,9 +196,16 @@ int main()
     glUniformMatrix4fv(loc_vp_matrix, 1, GL_FALSE, vp_matrix.m);
     
     //update_fps_counter(window);
-    char tmp[128];
-    sprintf(tmp, "Bot Project 2 - %i fps", sim_data.fps);
-    glfwSetWindowTitle(window, tmp);
+    
+    // Update FPS display
+    current_seconds = glfwGetTime();
+    if(current_seconds - last_seconds >= 0.5)
+    {
+      char tmp[128];
+      sprintf(tmp, "Bot Project 2 - %i fps - %f avg fitness", sim_data.fps, sim_data.world->average_fitness);
+      glfwSetWindowTitle(window, tmp);
+      last_seconds = current_seconds;
+    }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shader_program);

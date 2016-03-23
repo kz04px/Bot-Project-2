@@ -103,7 +103,7 @@ int buffers_fill_pellets(s_world* world, s_buffers* buffers)
     0,2,3
   };
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers->ibo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*8, indexData, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 8*sizeof(*indexData), indexData, GL_STATIC_DRAW);
   
   // Positions
   GLfloat translationData[2 * world->grid_w * world->grid_h];
@@ -113,7 +113,7 @@ int buffers_fill_pellets(s_world* world, s_buffers* buffers)
     translationData[2*p + 1] = world->pellets[p].y;
   }
   glBindBuffer(GL_ARRAY_BUFFER, buffers->tbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*2*world->num_pellets, translationData, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 2*world->num_pellets*sizeof(*translationData), translationData, GL_STATIC_DRAW);
   
   // Colours
   GLfloat colourData[3 * world->num_pellets];
@@ -124,7 +124,7 @@ int buffers_fill_pellets(s_world* world, s_buffers* buffers)
     colourData[3*p + 2] = world->pellets[p].b;
   }
   glBindBuffer(GL_ARRAY_BUFFER, buffers->cbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*world->grid_w*world->grid_h, colourData, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 3*world->num_pellets*sizeof(*colourData), colourData, GL_STATIC_DRAW);
   
   return 0;
 }

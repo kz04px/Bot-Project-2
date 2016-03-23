@@ -14,11 +14,34 @@ int fnn_print(s_fnn *fnn)
   int i;
   
   printf("Num layers: %i\n", fnn->num_layers);
+  printf("Address: %p\n", fnn);
   
   printf("Layer sizes:");
   for(i = 0; i < fnn->num_layers; ++i)
   {
     printf(" %i", fnn->layer_sizes[i]);
+  }
+  printf("\n");
+  printf("\n");
+  int x;
+  for(x = 0; x < fnn->num_layers; ++x)
+  {
+    printf("Layer %i:\n", x);
+    int y;
+    for(y = 0; y < fnn->layer_sizes[x]; ++y)
+    {
+      printf("%f %f\n", fnn->neurons[x][y].in, fnn->neurons[x][y].out);
+      if(x > 0)
+      {
+        int w;
+        for(w = 0; w < fnn->layer_sizes[x-1]; ++w)
+        {
+          printf("%f ", fnn->neurons[x][y].weights[w]);
+        }
+        printf("\n");
+      }
+    }
+    printf("\n");
   }
   printf("\n");
   
@@ -53,7 +76,7 @@ int fnn_init(s_fnn *fnn, int num_layers, int *layer_sizes)
       fnn->neurons[x][y].out = 0.0;
       if(x > 0)
       {
-        fnn->neurons[x][y].weights = malloc(layer_sizes[x-1]*sizeof(float));
+        fnn->neurons[x][y].weights = malloc(layer_sizes[x-1]*sizeof(*fnn->neurons[x][y].weights));
         int w;
         for(w = 0; w < layer_sizes[x-1]; ++w)
         {
@@ -62,6 +85,43 @@ int fnn_init(s_fnn *fnn, int num_layers, int *layer_sizes)
       }
     }
   }
+  
+  return 0;
+}
+
+int fnn_neurons_copy(s_fnn *dest, s_fnn *src)
+{
+  assert(dest != NULL);
+  assert(src != NULL);
+  
+  if(dest->num_layers != src->num_layers)
+  {
+    return -1;
+  }
+  
+  int i;
+  for(i = 0; i < dest->num_layers; ++i)
+  {
+    if(dest->layer_sizes[i] != src->layer_sizes[i])
+    {
+      return -2;
+    }
+  }
+  
+  int x;
+  for(x = 1; x < dest->num_layers; ++x)
+  {
+    int y;
+    for(y = 0; y < dest->layer_sizes[x]; ++y)
+    {
+      int w;
+      for(w = 0; w < dest->layer_sizes[x-1]; ++w)
+      {
+        dest->neurons[x][y].weights[w] = src->neurons[x][y].weights[w];
+      }
+    }
+  }
+  
   return 0;
 }
 
@@ -99,9 +159,9 @@ int fnn_weights_jiggle(s_fnn *fnn)
       int w;
       for(w = 0; w < fnn->layer_sizes[x-1]; ++w)
       {
-        fnn->neurons[x][y].weights[w] += RAND_BETWEEN(-0.05, 0.05);
-             if(fnn->neurons[x][y].weights[w] < -1.0) {fnn->neurons[x][y].weights[w] = -1.0;}
-        else if(fnn->neurons[x][y].weights[w] >  1.0) {fnn->neurons[x][y].weights[w] =  1.0;}
+        fnn->neurons[x][y].weights[w] += RAND_BETWEEN(-0.1, 0.1);
+        //     if(fnn->neurons[x][y].weights[w] < -1.0) {fnn->neurons[x][y].weights[w] = -1.0;}
+        //else if(fnn->neurons[x][y].weights[w] >  1.0) {fnn->neurons[x][y].weights[w] =  1.0;}
       }
     }
   }
@@ -118,7 +178,8 @@ int fnn_feedforwards(s_fnn *fnn)
   
   for(y = 0; y < fnn->layer_sizes[0]; ++y)
   {
-    fnn->neurons[0][y].out = SIGMOID(fnn->neurons[0][y].in);
+    fnn->neurons[0][y].out = fnn->neurons[0][y].in;
+    //fnn->neurons[0][y].out = SIGMOID(fnn->neurons[0][y].in);
   }
   
   for(x = 1; x < fnn->num_layers; ++x)

@@ -23,6 +23,11 @@ int world_simulate_frame(s_world *world)
   
   int num_bots_alive = 0;
   
+  if(world->generation%10 == 0 && world->frame == 0)
+  {
+    printf("Generation: %i\n", world->generation);
+  }
+  
   int b;
   for(b = 0; b < world->num_bots; ++b)
   {
@@ -77,8 +82,7 @@ int world_simulate_frame(s_world *world)
       if(dist <= world->bots[b].parts[0].radius)
       {
         world->bots[b].energy += world->pellets[p].energy;
-        world_pellet_remove(world, p);
-        world_pellet_add(world);
+        world_pellet_replace(world, p);
         p--;
         continue;
       }
@@ -207,42 +211,88 @@ int world_simulate_frame(s_world *world)
     }
     
     // Set brain inputs
+    int eye_offset = 1;
+    int ear_offset = eye_offset + 4*world->bots[b].total_eyes;
+    
+    world->bots[b].fnn.neurons[0][0].in = RAND_BETWEEN(0.0, 1.0);
+    
     int pos = 0;
     for(part = 0; part < world->bots[b].num_parts; ++part)
     {
       int e;
       for(e = 0; e < world->bots[b].parts[part].num_eyes; ++e)
       {
-        world->bots[b].fnn.neurons[0][4*pos + 0].in = world->bots[b].parts[part].eyes[e].str;
-        world->bots[b].fnn.neurons[0][4*pos + 1].in = world->bots[b].parts[part].eyes[e].r;
-        world->bots[b].fnn.neurons[0][4*pos + 2].in = world->bots[b].parts[part].eyes[e].g;
-        world->bots[b].fnn.neurons[0][4*pos + 3].in = world->bots[b].parts[part].eyes[e].b;
+        world->bots[b].fnn.neurons[0][4*pos + 0 + eye_offset].in = world->bots[b].parts[part].eyes[e].str;
+        world->bots[b].fnn.neurons[0][4*pos + 1 + eye_offset].in = world->bots[b].parts[part].eyes[e].r;
+        world->bots[b].fnn.neurons[0][4*pos + 2 + eye_offset].in = world->bots[b].parts[part].eyes[e].g;
+        world->bots[b].fnn.neurons[0][4*pos + 3 + eye_offset].in = world->bots[b].parts[part].eyes[e].b;
         pos++;
       }
     }
     
-    // Update brain
-    fnn_feedforwards(&world->bots[b].fnn);
+    float output_0;
+    float output_1;
     
     // Random movement
-    //world->bots[b].parts[0].angle += world->bots[b].turn_rate*RAND_BETWEEN(-1.0, 1.0);
+    /*
+    output_0 = 1.0;
+    output_1 = RAND_BETWEEN(0.0, 1.0);
+    */
     
     // Basic movement
     /*
-         if(world->bots[b].parts[0].eyes[0].str > world->bots[b].parts[0].eyes[1].str) {world->bots[b].parts[0].angle += world->bots[b].turn_rate;}
-    else if(world->bots[b].parts[0].eyes[0].str < world->bots[b].parts[0].eyes[1].str) {world->bots[b].parts[0].angle -= world->bots[b].turn_rate;}
-    NORMALISE_RAD(world->bots[b].parts[0].angle);
-    world->bots[b].parts[0].x += world->bots[b].speed*sin(world->bots[b].parts[0].angle);
-    world->bots[b].parts[0].y += world->bots[b].speed*cos(world->bots[b].parts[0].angle);
+    output_0 = 1.0;
+         if(world->bots[b].parts[0].eyes[0].str > world->bots[b].parts[0].eyes[1].str) {output_1 = 1.0;}
+    else if(world->bots[b].parts[0].eyes[0].str < world->bots[b].parts[0].eyes[1].str) {output_1 = 0.0;}
+    else {output_1 = 0.5;}
+    */
+    
+    // Advanced movement
+    /*
+    output_0 = 0.5;
+    if(world->bots[b].parts[0].eyes[0].str > world->bots[b].parts[0].eyes[1].str)
+    {
+      // We see a yellow (good) pellet
+      if(world->bots[b].parts[0].eyes[0].r > 0.9 && world->bots[b].parts[0].eyes[0].g > 0.9 && world->bots[b].parts[0].eyes[0].b < 0.1)
+      {
+        output_1 = 1.0;
+      }
+      // We see a blue (bad) pellet
+      else
+      {
+        output_1 = 0.0;
+      }
+    }
+    else if(world->bots[b].parts[0].eyes[0].str < world->bots[b].parts[0].eyes[1].str)
+    {
+      // We see a yellow (good) pellet
+      if(world->bots[b].parts[0].eyes[1].r > 0.9 && world->bots[b].parts[0].eyes[1].g > 0.9 && world->bots[b].parts[0].eyes[1].b < 0.1)
+      {
+        output_1 = 0.0;
+      }
+      // We see a blue (bad) pellet
+      else
+      {
+        output_1 = 1.0;
+      }
+    }
+    else
+    {
+      output_0 = 1.0;
+      output_1 = 0.5;
+    }
     */
     
     // FNN movement
-    float output_0 = world->bots[b].fnn.neurons[world->bots[b].fnn.num_layers-1][0].out;
-    float output_1 = world->bots[b].fnn.neurons[world->bots[b].fnn.num_layers-1][1].out;
+    fnn_feedforwards(&world->bots[b].fnn);
+    output_0 = world->bots[b].fnn.neurons[world->bots[b].fnn.num_layers-1][0].out;
+    output_1 = world->bots[b].fnn.neurons[world->bots[b].fnn.num_layers-1][1].out;
     
+    // Move the head
+    world->bots[b].parts[0].angle += (output_1 - 0.5)*world->bots[b].turn_rate;
+    NORMALISE_RAD(world->bots[b].parts[0].angle);
     world->bots[b].parts[0].x += output_0*world->bots[b].speed*sin(world->bots[b].parts[0].angle);
     world->bots[b].parts[0].y += output_0*world->bots[b].speed*cos(world->bots[b].parts[0].angle);
-    world->bots[b].parts[0].angle += (output_1 - 0.5)*world->bots[b].turn_rate;
     
     // Update tail positions
     float spacer = 0.3;
@@ -284,19 +334,21 @@ int world_simulate_frame(s_world *world)
     
   
   // Create the next generation
-  #define NUM_PARENTS 4
   if(num_bots_alive <= NUM_PARENTS || world->frame >= GEN_MAX_FRAMES)
   {
-    s_bot parents[NUM_PARENTS];
     int bot_number[world->num_bots];
     int bot_score[world->num_bots];
     
     // Score the bots
+    world->average_fitness = 0.0;
     for(b = 0; b < world->num_bots; ++b)
     {
       bot_number[b] = b;
-      bot_score[b] = world->bots[b].age;
+      bot_score[b] = world->bots[b].age + world->bots[b].health + world->bots[b].energy;
+      
+      world->average_fitness += bot_score[b];
     }
+    world->average_fitness = world->average_fitness/world->num_bots;
     
     // Sort
     int a;
@@ -320,35 +372,94 @@ int world_simulate_frame(s_world *world)
       }
     }
     
+    /*
+    printf("Bots:\n");
+    for(b = 0; b < world->num_bots; ++b)
+    {
+      printf("%i: %i\n", bot_number[b], bot_score[b]);
+    }
+    
+    printf("Bots 2:\n");
+    for(b = 0; b < world->num_bots; ++b)
+    {
+      printf("%i: %i\n", b, world->bots[b].age);
+    }
+    */
+    
     // Create parents
     for(b = 0; b < NUM_PARENTS; ++b)
     {
-      parents[b] = world->bots[bot_number[b]];
+      bot_copy(&world->parents[b], &world->bots[bot_number[b]]);
+      
+      //parents[b] = world->bots[bot_number[b]];
+      //printf("Parent %i:\n", b);
+      //bot_print(&parents[b]);
     }
+    
+    /*
+    printf("Parents:\n");
+    for(b = 0; b < NUM_PARENTS; ++b)
+    {
+      printf("%i: %i\n", b, world->parents[b].age);
+    }
+    getchar();
+    */
     
     // Create new generation
     for(b = 0; b < world->num_bots; ++b)
     {
-      world->bots[b] = parents[rand()%NUM_PARENTS];
+      int r;
+      int parent_num = rand()%NUM_PARENTS;
+      r = bot_copy(&world->bots[b], &world->parents[parent_num]);
+      if(r != 0)
+      {
+        printf("Uh oh\n");
+      }
+      //world->bots[b] = parents[rand()%NUM_PARENTS];
+      
+      
       fnn_weights_jiggle(&world->bots[b].fnn);
       
+      world->bots[b].age = 0;
       world->bots[b].energy = BOT_START_ENERGY;
       world->bots[b].health = BOT_START_HEALTH;
       
-      float red = RAND_BETWEEN(0.0, 1.0);
-      float green = RAND_BETWEEN(0.0, 1.0);
-      float blue = RAND_BETWEEN(0.0, 1.0);
+      world->bots[b].parts[0].r += RAND_BETWEEN(-0.1, 0.1);
+      world->bots[b].parts[0].g += RAND_BETWEEN(-0.1, 0.1);
+      world->bots[b].parts[0].b += RAND_BETWEEN(-0.1, 0.1);
+      
+           if(world->bots[b].parts[0].r > 1.0) {world->bots[b].parts[0].r = 1.0;}
+      else if(world->bots[b].parts[0].r < 0.0) {world->bots[b].parts[0].r = 0.0;}
+      
+           if(world->bots[b].parts[0].g > 1.0) {world->bots[b].parts[0].g = 1.0;}
+      else if(world->bots[b].parts[0].g < 0.0) {world->bots[b].parts[0].g = 0.0;}
+      
+           if(world->bots[b].parts[0].b > 1.0) {world->bots[b].parts[0].b = 1.0;}
+      else if(world->bots[b].parts[0].b < 0.0) {world->bots[b].parts[0].b = 0.0;}
+      
       int part;
-      for(part = 0; part < world->bots[b].num_parts; ++part)
+      for(part = 1; part < world->bots[b].num_parts; ++part)
       {
-        world->bots[b].parts[part].r = red - (float)part/world->bots[b].num_parts;
-        world->bots[b].parts[part].g = green - (float)part/world->bots[b].num_parts;
-        world->bots[b].parts[part].b = blue - (float)part/world->bots[b].num_parts;
+        world->bots[b].parts[part].r = world->bots[b].parts[part-1].r - (float)part/world->bots[b].num_parts;
+        world->bots[b].parts[part].g = world->bots[b].parts[part-1].g - (float)part/world->bots[b].num_parts;
+        world->bots[b].parts[part].b = world->bots[b].parts[part-1].b - (float)part/world->bots[b].num_parts;
       }
       
       world->bots[b].parts[0].angle = RAND_BETWEEN(0.0, 2.0*M_PI);
       world->bots[b].parts[0].x = RAND_BETWEEN(0.0, world->w);
       world->bots[b].parts[0].y = RAND_BETWEEN(0.0, world->h);
+      
+      //printf("Child %i:\n", b);
+      //bot_print(&world->bots[b]);
+    }
+    
+    //getchar();
+    
+    // Replace all the pellets
+    int p;
+    for(p = 0; p < world->num_pellets; ++p)
+    {
+      world_pellet_replace(world, p);
     }
     
     world->frame = 0;
@@ -378,7 +489,6 @@ int world_bot_add(s_world *world)
   
   if(world->num_bots >= MAX_BOTS) {return -1;}
   
-  int i;
   int b = world->num_bots;
   
   static int id = 0;
@@ -394,20 +504,27 @@ int world_bot_add(s_world *world)
   world->bots[b].age = 0;
   world->bots[b].energy = BOT_START_ENERGY;
   world->bots[b].health = BOT_START_HEALTH;
-  world->bots[b].speed = 0.1*RAND_BETWEEN(0.8, 1.0);
-  world->bots[b].turn_rate = 0.01*RAND_BETWEEN(0.8, 1.0);
+  world->bots[b].speed = 0.025*RAND_BETWEEN(0.8, 1.0);
+  world->bots[b].turn_rate = 0.025*RAND_BETWEEN(0.8, 1.0);
   world->bots[b].num_parts = MAX_PARTS - rand()%3;
   world->bots[b].total_eyes = 0;
   world->bots[b].total_spikes = 0;
   world->bots[b].total_ears = 0;
   
   // Neural network
-  int sizes[4] = {12, 2, 2, 2};
-  fnn_init(&world->bots[b].fnn, 4, sizes);
   fnn_weights_randomise(&world->bots[b].fnn);
   
-  assert(world->bots[b].num_parts <= MAX_PARTS);
-  assert(world->bots[b].num_parts >= 0);
+  if(world->bots[b].num_parts < 1)
+  {
+    world->bots[b].num_parts = 1;
+  }
+  else if(world->bots[b].num_parts > MAX_PARTS)
+  {
+    world->bots[b].num_parts = MAX_PARTS;
+  }
+  
+  //assert(world->bots[b].num_parts <= MAX_PARTS);
+  //assert(world->bots[b].num_parts >= 1);
   
   // Body parts
   int part;
@@ -422,8 +539,8 @@ int world_bot_add(s_world *world)
     else
     {
       world->bots[b].parts[part].angle = world->bots[b].parts[part-1].angle + RAND_BETWEEN(-2.0*M_PI/16, 2.0*M_PI/16);
-      world->bots[b].parts[part].x = world->bots[b].parts[part-1].x - spacer*sin(world->bots[b].parts[part].angle);
-      world->bots[b].parts[part].y = world->bots[b].parts[part-1].y - spacer*cos(world->bots[b].parts[part].angle);
+      world->bots[b].parts[part].x     = world->bots[b].parts[part-1].x     - spacer*sin(world->bots[b].parts[part].angle);
+      world->bots[b].parts[part].y     = world->bots[b].parts[part-1].y     - spacer*cos(world->bots[b].parts[part].angle);
       
       spacer *= 0.9;
     }
@@ -433,34 +550,43 @@ int world_bot_add(s_world *world)
     world->bots[b].parts[part].num_spikes = 0;
     world->bots[b].parts[part].num_ears = 0;
     world->bots[b].parts[part].radius = spacer;
-    world->bots[b].parts[part].r = red - (float)part/world->bots[b].num_parts;
+    world->bots[b].parts[part].r = red   - (float)part/world->bots[b].num_parts;
     world->bots[b].parts[part].g = green - (float)part/world->bots[b].num_parts;
-    world->bots[b].parts[part].b = blue - (float)part/world->bots[b].num_parts;
+    world->bots[b].parts[part].b = blue  - (float)part/world->bots[b].num_parts;
   }
   
   float multiplier;
   
   // Eyes
   multiplier = RAND_BETWEEN(0.8, 1.0);
-  bot_eye_add(&world->bots[b], 0, 1*(2.0*M_PI/12), 2.0*M_PI/5, 3.0*multiplier);
-  bot_eye_add(&world->bots[b], 0, 11*(2.0*M_PI/12), 2.0*M_PI/5, 3.0*multiplier);
+  bot_eye_add(&world->bots[b], 0, 1*(2.0*M_PI/12), 2.0*M_PI/5, 2.5*multiplier);
+  bot_eye_add(&world->bots[b], 0, 11*(2.0*M_PI/12), 2.0*M_PI/5, 2.5*multiplier);
   bot_eye_add(&world->bots[b], world->bots[b].num_parts-1, M_PI, 2.0*M_PI/4, 1.5*multiplier);
   
-  // Spikes (Caterpillar look)
+  // Spikes
   multiplier = RAND_BETWEEN(0.8, 1.0);
-  bot_spike_add(&world->bots[b], 0, 0.8*multiplier, 0.0);
-  bot_spike_add(&world->bots[b], 0, 0.6*multiplier, 5*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], 0, 0.6*multiplier, 1*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], 1, 0.6*multiplier, 5*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], 1, 0.6*multiplier, 1*(2.0*M_PI/6));
-  for(i = 1; i < world->bots[b].num_parts-1; ++i)
+  if(MAX_PARTS == 1)
   {
-    bot_spike_add(&world->bots[b], i, 2.0*multiplier*world->bots[b].parts[i].radius, 4*(2.0*M_PI/6));
-    bot_spike_add(&world->bots[b], i, 2.0*multiplier*world->bots[b].parts[i].radius, 2*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], 0, 0.8*multiplier, 0.0);
   }
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 4*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2*(2.0*M_PI/6));
-  bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 5.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2.0*M_PI/2);
+  else
+  {
+    // (Caterpillar look)
+    int i;
+    bot_spike_add(&world->bots[b], 0, 0.8*multiplier, 0.0);
+    bot_spike_add(&world->bots[b], 0, 0.6*multiplier, 5*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], 0, 0.6*multiplier, 1*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], 1, 0.6*multiplier, 5*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], 1, 0.6*multiplier, 1*(2.0*M_PI/6));
+    for(i = 1; i < world->bots[b].num_parts-1; ++i)
+    {
+      bot_spike_add(&world->bots[b], i, 2.0*multiplier*world->bots[b].parts[i].radius, 4*(2.0*M_PI/6));
+      bot_spike_add(&world->bots[b], i, 2.0*multiplier*world->bots[b].parts[i].radius, 2*(2.0*M_PI/6));
+    }
+    bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 4*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 3.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2*(2.0*M_PI/6));
+    bot_spike_add(&world->bots[b], world->bots[b].num_parts-1, 5.0*multiplier*world->bots[b].parts[world->bots[b].num_parts-1].radius, 2.0*M_PI/2);
+  }
   
   // Ears
   multiplier = RAND_BETWEEN(0.8, 1.0);
@@ -498,6 +624,25 @@ int world_pellets_add(s_world *world, int n)
   return 0;
 }
 
+int world_pellet_replace(s_world *world, int p)
+{
+  assert(world != NULL);
+  
+  if(p < 0)
+  {
+    return -1;
+  }
+  else if(p > world->num_pellets)
+  {
+    return -2;
+  }
+  
+  world->pellets[p].x = RAND_BETWEEN(0, world->w);
+  world->pellets[p].y = RAND_BETWEEN(0, world->h);
+  
+  return 0;
+}
+
 int world_pellet_add(s_world *world)
 {
   assert(world != NULL);
@@ -513,11 +658,23 @@ int world_pellet_add(s_world *world)
   world->pellets[i].x = RAND_BETWEEN(0, world->w);
   world->pellets[i].y = RAND_BETWEEN(0, world->h);
   world->pellets[i].size = 0.2;
-  world->pellets[i].energy = 100;
   
-  world->pellets[i].r = 0.0;
-  world->pellets[i].g = RAND_BETWEEN(0.4, 0.5);
-  world->pellets[i].b = 0.0;
+  if(rand()%10 != 0) // Good pellets
+  {
+    world->pellets[i].energy = PELLET_ENERGY;
+    // Yellow
+    world->pellets[i].r = 1.0;
+    world->pellets[i].g = 1.0;
+    world->pellets[i].b = 0.0;
+  }
+  else // Bad pellets
+  {
+    world->pellets[i].energy = -0.5*PELLET_ENERGY;
+    // Blue
+    world->pellets[i].r = 0.0;
+    world->pellets[i].g = 0.0;
+    world->pellets[i].b = 1.0;
+  }
   
   world->num_pellets++;
   id++;
@@ -549,16 +706,29 @@ int world_init(s_world *world)
   assert(world != NULL);
   
   world->seed = time(0);
+  srand(world->seed);
   world->frame = 0;
   world->generation = 0;
   world->w = 96.0;
   world->h = 54.0;
   world->num_bots = 0;
   world->num_pellets = 0;
+  world->average_fitness = 0.0;
   world->grid_w = 16;
   world->grid_h = 9;
   
-  srand(world->seed);
+  // Create the bot brains
+  int sizes[4] = {13, 8, 8, 2};
+  int b;
+  for(b = 0; b < MAX_BOTS; ++b)
+  {
+    fnn_init(&world->bots[b].fnn, 4, sizes);
+  }
+  for(b = 0; b < NUM_PARENTS; ++b)
+  {
+    fnn_init(&world->parents[b].fnn, 4, sizes);
+  }
+  
   world->grid = malloc(world->grid_w * sizeof(s_tile*));
   
   int w;
@@ -568,15 +738,15 @@ int world_init(s_world *world)
     int h;
     for(h = 0; h < world->grid_h; ++h)
     {
-      // Green-Brown
       world->grid[w][h].food = 100;
-      world->grid[w][h].r = RAND_BETWEEN(0.65, 0.75);
-      world->grid[w][h].g = RAND_BETWEEN(0.55, 0.65);
-      world->grid[w][h].b = RAND_BETWEEN(0.25, 0.35);
+      // Green-Brown
+      //world->grid[w][h].r = RAND_BETWEEN(0.65, 0.75);
+      //world->grid[w][h].g = RAND_BETWEEN(0.55, 0.65);
+      //world->grid[w][h].b = RAND_BETWEEN(0.25, 0.35);
       // Green
-      //world->grid[w][h].r = RAND_BETWEEN(0.2, 0.3);
-      //world->grid[w][h].g = RAND_BETWEEN(0.4, 0.7);
-      //world->grid[w][h].b = RAND_BETWEEN(0.1, 0.2);
+      world->grid[w][h].r = RAND_BETWEEN(0.2, 0.3);
+      world->grid[w][h].g = RAND_BETWEEN(0.4, 0.7);
+      world->grid[w][h].b = RAND_BETWEEN(0.1, 0.2);
     }
   }
   

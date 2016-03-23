@@ -13,21 +13,26 @@
 #include <time.h>
 #include "fnn.h"
 
-#define MAX_BOTS            128
-#define MAX_PELLETS         512
+// Bots
 #define EYE_CONE_ACCURACY    16
 #define EAR_RANGE_ACCURACY   32
-#define BOT_START_ENERGY   1000
+#define BOT_START_ENERGY    500
 #define BOT_START_HEALTH    500
-#define GEN_MAX_FRAMES     2000
+#define MIN_VIEW_DIST       1.0
+#define MAX_VIEW_DIST       5.0
+#define MAX_PARTS             8
+#define MAX_EYES             16
+#define MAX_SPIKES           32
+#define MAX_EARS              1
 
-#define MIN_VIEW_DIST  1.0
-#define MAX_VIEW_DIST  5.0
+// Pellets
+#define PELLET_ENERGY       200
 
-#define MAX_PARTS   12
-#define MAX_EYES    16
-#define MAX_SPIKES  32
-#define MAX_EARS     1
+// Simulation
+#define NUM_PARENTS           4
+#define MAX_BOTS            128
+#define MAX_PELLETS         512
+#define GEN_MAX_FRAMES     5000
 
 #define DEG_TO_RAD(x) (x*0.0174532925)
 #define RAD_TO_DEG(x) (x/0.0174532925)
@@ -130,6 +135,7 @@ typedef struct
   int generation;
   float w;
   float h;
+  float average_fitness;
   
   int grid_w;
   int grid_h;
@@ -137,10 +143,10 @@ typedef struct
   
   int num_bots;
   s_bot bots[MAX_BOTS];
+  s_bot parents[NUM_PARENTS];
   
   int num_pellets;
   s_pellet pellets[MAX_PELLETS];
-  
 } s_world;
 
 typedef struct
@@ -186,9 +192,11 @@ int buffer_fill_bot_eyes(s_part *part, s_buffers *buffers);
 int buffer_fill_bot_ears(s_part *part, s_buffers *buffers);
 
 // bot.c
+int bot_print(s_bot *bot);
 int bot_eye_add(s_bot* bot, int part, float angle, float fov, float dist);
 int bot_spike_add(s_bot* bot, int part, float length, float angle);
 int bot_ear_add(s_bot* bot, int part, float dist);
+int bot_copy(s_bot* dest, s_bot* src);
 
 // world.c
 int world_simulate_frame(s_world *world);
@@ -199,6 +207,7 @@ int world_bots_add(s_world *world, int n);
 int world_pellet_add(s_world *world);
 int world_pellet_remove(s_world *world, int p);
 int world_pellets_add(s_world *world, int n);
+int world_pellet_replace(s_world *world, int p);
 
 // io.c
 int load_settings(const char *filename);

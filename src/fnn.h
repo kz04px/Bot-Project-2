@@ -17,6 +17,7 @@ typedef struct
 
 int fnn_print(s_fnn *fnn);
 int fnn_init(s_fnn *fnn, int num_layers, int *layer_sizes);
+int fnn_neurons_copy(s_fnn *dest, s_fnn *src);
 int fnn_weights_randomise(s_fnn *fnn);
 int fnn_weights_jiggle(s_fnn *fnn);
 int fnn_feedforwards(s_fnn *fnn);
