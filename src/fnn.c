@@ -169,6 +169,48 @@ int fnn_weights_jiggle(s_fnn *fnn)
   return 0;
 }
 
+int fnn_weights_reinforce(s_fnn *fnn)
+{
+  assert(fnn != NULL);
+  
+  int x;
+  for(x = 1; x < fnn->num_layers; ++x)
+  {
+    int y;
+    for(y = 0; y < fnn->layer_sizes[x]; ++y)
+    {
+      int w;
+      for(w = 0; w < fnn->layer_sizes[x-1]; ++w)
+      {
+        fnn->neurons[x][y].weights[w] *= 1.01;
+      }
+    }
+  }
+  
+  return 0;
+}
+
+int fnn_weights_decay(s_fnn *fnn)
+{
+  assert(fnn != NULL);
+  
+  int x;
+  for(x = 1; x < fnn->num_layers; ++x)
+  {
+    int y;
+    for(y = 0; y < fnn->layer_sizes[x]; ++y)
+    {
+      int w;
+      for(w = 0; w < fnn->layer_sizes[x-1]; ++w)
+      {
+        fnn->neurons[x][y].weights[w] *= 0.99;
+      }
+    }
+  }
+  
+  return 0;
+}
+
 int fnn_feedforwards(s_fnn *fnn)
 {
   assert(fnn != NULL);
@@ -197,6 +239,15 @@ int fnn_feedforwards(s_fnn *fnn)
       fnn->neurons[x][y].out = SIGMOID(fnn->neurons[x][y].in);
     }
   }
+  
+  return 0;
+}
+
+int fnn_backpropagate(s_fnn *fnn)
+{
+  assert(fnn != NULL);
+  
+  
   
   return 0;
 }

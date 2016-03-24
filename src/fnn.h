@@ -21,5 +21,8 @@ int fnn_neurons_copy(s_fnn *dest, s_fnn *src);
 int fnn_weights_randomise(s_fnn *fnn);
 int fnn_weights_jiggle(s_fnn *fnn);
 int fnn_feedforwards(s_fnn *fnn);
+int fnn_weights_reinforce(s_fnn *fnn);
+int fnn_weights_decay(s_fnn *fnn);
+int fnn_backpropagate(s_fnn *fnn);
 
 #endif // FNN_H_INCLUDED

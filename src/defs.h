@@ -13,14 +13,16 @@
 #include <time.h>
 #include "fnn.h"
 
-// Bots
+// Visuals
 #define EYE_CONE_ACCURACY    16
-#define EAR_RANGE_ACCURACY   32
+#define EAR_RANGE_ACCURACY   64
+
+// Bots
 #define BOT_START_ENERGY    500
 #define BOT_START_HEALTH    500
 #define MIN_VIEW_DIST       1.0
 #define MAX_VIEW_DIST       5.0
-#define MAX_PARTS             8
+#define MAX_PARTS            12
 #define MAX_EYES             16
 #define MAX_SPIKES           32
 #define MAX_EARS              1
@@ -135,6 +137,10 @@ typedef struct
   int generation;
   float w;
   float h;
+  
+  // Stats
+  int pellets_eaten_good;
+  int pellets_eaten_bad;
   float average_fitness;
   
   int grid_w;

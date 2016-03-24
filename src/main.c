@@ -119,8 +119,8 @@ int main()
   
   s_world *world = malloc(1*sizeof(s_world));
   world_init(world);
-  world_pellets_add(world, 150);
   world_bots_add(world, 20);
+  world_pellets_add(world, 150);
   
   #ifndef NDEBUG
   world_print_details(world);
@@ -202,7 +202,7 @@ int main()
     if(current_seconds - last_seconds >= 0.5)
     {
       char tmp[128];
-      sprintf(tmp, "Bot Project 2 - %i fps - %f avg fitness", sim_data.fps, sim_data.world->average_fitness);
+      sprintf(tmp, "Bot Project 2 - %i fps - %.2f avg fitness", sim_data.fps, sim_data.world->average_fitness);
       glfwSetWindowTitle(window, tmp);
       last_seconds = current_seconds;
     }
