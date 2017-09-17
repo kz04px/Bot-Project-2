@@ -1,6 +1,0 @@
-To do:
-- Add an overlay
-- Add bot groups
-- Add speakers?
-- Add save loading
-- 
