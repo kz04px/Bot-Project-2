@@ -8,7 +8,6 @@ struct SimData {
     int fps;
     int paused;
     int quit;
-    World *world;
 };
 
 extern float camera_x;
