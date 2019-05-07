@@ -1,23 +1,23 @@
-CC         = gcc
+CC         = g++
 CFLAGS     = -Wall -Wextra -Wshadow
 RFLAGS     = -O3 -flto -march=native -DNDEBUG
 DFLAGS     = -g
 
-LINKER     = gcc -o
-LFLAGS     = -g -lglfw -lGLEW -lGL -lm -pthread
+LINKER     = g++ -o
+LFLAGS     = -g -lglfw -lGLEW -lGL -pthread
 
 TARGET     = main
 SRCDIR     = src
 OBJDIR     = obj
 BINDIR     = bin
 
-SOURCES := $(shell find $(SRCDIR) -type f -name *.c)
-OBJECTS := $(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(SOURCES:.c=.o))
+SOURCES := $(shell find $(SRCDIR) -type f -name *.cpp)
+OBJECTS := $(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(SOURCES:.cpp=.o))
 
 $(BINDIR)/$(TARGET): $(BINDIR) $(OBJDIR) $(OBJECTS)
 	@$(LINKER) $@ $(OBJECTS) $(LFLAGS)
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
