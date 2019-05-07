@@ -1,4 +1,6 @@
-#include "defs.hpp"
+#include "buffers.hpp"
+#include <cassert>
+#include <cmath>
 
 int buffers_fill_bots(World *world) {
     assert(world);

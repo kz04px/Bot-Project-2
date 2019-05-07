@@ -1,7 +1,12 @@
 #include <pthread.h>
 #include <iostream>
+#include "buffers.hpp"
+#include "callbacks.hpp"
 #include "defs.hpp"
+#include "io.hpp"
 #include "matrix.hpp"
+#include "shaders.hpp"
+#include "simulation.hpp"
 
 void update_fps_counter(GLFWwindow* window) {
     static double previous_seconds = 0;
@@ -191,11 +196,11 @@ printf("\n");
     while (!glfwWindowShouldClose(window)) {
         // Set uniform
         Mat4 vp_matrix = ortho(-20.0 * window_ratio * camera_zoom + camera_x,
-                                 20.0 * window_ratio * camera_zoom + camera_x,
-                                 -20.0 * camera_zoom + camera_y,
-                                 20.0 * camera_zoom + camera_y,
-                                 0.0,
-                                 1.0);
+                               20.0 * window_ratio * camera_zoom + camera_x,
+                               -20.0 * camera_zoom + camera_y,
+                               20.0 * camera_zoom + camera_y,
+                               0.0,
+                               1.0);
         glUniformMatrix4fv(loc_vp_matrix, 1, GL_FALSE, vp_matrix.m);
 
         // update_fps_counter(window);
@@ -241,8 +246,7 @@ printf("\n");
 
             for (int part = world->bots[b].num_parts - 1; part >= 0; --part) {
                 // Draw eye cones
-                buffer_fill_bot_cones(&world->bots[b].parts[part],
-                                      &bufferBots);
+                buffer_fill_bot_cones(&world->bots[b].parts[part], &bufferBots);
                 for (int i = 0; i < world->bots[b].parts[part].num_eyes; ++i) {
                     glDrawArrays(GL_LINES,
                                  2 * (EYE_CONE_ACCURACY + 2) * i,
@@ -250,8 +254,7 @@ printf("\n");
                 }
 
                 // Draw ear ranges
-                buffer_fill_bot_ears(&world->bots[b].parts[part],
-                                     &bufferBots);
+                buffer_fill_bot_ears(&world->bots[b].parts[part], &bufferBots);
                 glDrawArrays(GL_LINES,
                              0,
                              2 * EAR_RANGE_ACCURACY *
@@ -280,8 +283,7 @@ printf("\n");
                 }
 
                 // Draw eyes
-                buffer_fill_bot_eyes(&world->bots[b].parts[part],
-                                     &bufferBots);
+                buffer_fill_bot_eyes(&world->bots[b].parts[part], &bufferBots);
                 for (int i = 0; i < world->bots[b].parts[part].num_eyes; ++i) {
                     glDrawArrays(GL_TRIANGLE_FAN, 4 * i, 4);
                 }

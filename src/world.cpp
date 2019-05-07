@@ -1,7 +1,16 @@
+#include "world.hpp"
+#include <cassert>
+#include <cmath>
+#include <ctime>
+#include <iostream>
 #include "defs.hpp"
 
+#define DEG_TO_RAD(x) (x * 0.0174532925)
+#define RAD_TO_DEG(x) (x / 0.0174532925)
+#define RAND_BETWEEN(a, b) ((b - a) * ((float)rand() / RAND_MAX) + a)
 #define NORMALISE_RAD(x) \
     (x >= 2.0 * M_PI) ? x = x - 2.0 * M_PI : ((x < 0) ? x = x + 2.0 * M_PI : x)
+
 const float wiggle[32] = {
     0.000000,  0.195090,  0.382683,  0.555570,  0.707107,  0.831470,  0.923880,
     0.980785,  1.000000,  0.980785,  0.923880,  0.831470,  0.707107,  0.555570,

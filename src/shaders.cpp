@@ -1,5 +1,6 @@
+#include <cassert>
 #include <fstream>
-#include "defs.hpp"
+#include "io.hpp"
 
 std::string load_shader_file(const char* filename) {
     assert(filename);

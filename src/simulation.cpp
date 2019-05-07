@@ -1,3 +1,7 @@
+#include <cassert>
+#include <chrono>
+#include <cstddef>
+#include <thread>
 #include "defs.hpp"
 
 void *simulate_world(void *ptr) {
@@ -7,24 +11,20 @@ void *simulate_world(void *ptr) {
 
     while (!sim_data->quit) {
         if (sim_data->paused) {
-            nanosleep((const struct timespec[]){{0, 500000000L}}, NULL);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
 
-        double t0 = glfwGetTime();
+        const auto t0 = std::chrono::high_resolution_clock::now();
         world_simulate_frame(sim_data->world);
-        double t1 = glfwGetTime();
+        const auto t1 = std::chrono::high_resolution_clock::now();
+        const auto diff =
+            std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
 
-        if (t1 - t0 < 1.0 / sim_data->fps_max && sim_data->fps_max >= 0) {
-            /*
-            nanosleep((const struct timespec[]){{0,
-                                                 (1.0 / sim_data->fps_max -
-                                                  (t1 - t0)) *
-                                                     1000.0 * 1000.0 * 1000.0}},
-                      NULL);
-                       */
+        if (diff.count() < 1.0 / sim_data->fps_max) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        sim_data->fps = 1.0 / (glfwGetTime() - t0);
+        // sim_data->fps = 1.0 / (glfwGetTime() - t0);
     }
 
     return nullptr;

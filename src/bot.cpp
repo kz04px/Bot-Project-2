@@ -1,9 +1,9 @@
-#include "defs.hpp"
+#include "bot.hpp"
+#include <cassert>
 
 int bot_print(Bot* bot) {
     assert(bot);
     fnn_print(&bot->fnn);
-    std::cout << std::endl;
 
     return 0;
 }

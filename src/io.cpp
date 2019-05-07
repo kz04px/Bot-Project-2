@@ -1,3 +1,9 @@
+#include "io.hpp"
+#include <cassert>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "defs.hpp"
 
 int load_settings(const char *filename) {

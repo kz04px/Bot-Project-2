@@ -1,4 +1,7 @@
+#include <cassert>
+#include <iostream>
 #include "defs.hpp"
+#include "io.hpp"
 
 void glfw_window_size_callback(GLFWwindow* window, int width, int height) {
     assert(window);
