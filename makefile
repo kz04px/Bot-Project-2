@@ -1,5 +1,5 @@
 CC         = g++
-CFLAGS     = -Wall -Wextra -Wshadow
+CFLAGS     = -std=c++17 -Wall -Wextra -Wshadow
 RFLAGS     = -O3 -flto -march=native -DNDEBUG
 DFLAGS     = -g
 
