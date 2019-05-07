@@ -1,10 +1,12 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <thread>
 #include "buffers.hpp"
 #include "callbacks.hpp"
 #include "defs.hpp"
 #include "io.hpp"
-#include "matrix.hpp"
 #include "shaders.hpp"
 #include "simulation.hpp"
 
@@ -193,13 +195,15 @@ printf("\n");
     glClearColor(0.6, 0.6, 0.8, 1.0);
     while (!glfwWindowShouldClose(window)) {
         // Set uniform
-        Mat4 vp_matrix = ortho(-20.0 * window_ratio * camera_zoom + camera_x,
-                               20.0 * window_ratio * camera_zoom + camera_x,
-                               -20.0 * camera_zoom + camera_y,
-                               20.0 * camera_zoom + camera_y,
-                               0.0,
-                               1.0);
-        glUniformMatrix4fv(loc_vp_matrix, 1, GL_FALSE, vp_matrix.m);
+        glm::mat4 vp_matrix =
+            glm::ortho(-20.0 * window_ratio * camera_zoom + camera_x,
+                       20.0 * window_ratio * camera_zoom + camera_x,
+                       -20.0 * camera_zoom + camera_y,
+                       20.0 * camera_zoom + camera_y,
+                       0.0,
+                       1.0);
+        glUniformMatrix4fv(
+            loc_vp_matrix, 1, GL_FALSE, glm::value_ptr(vp_matrix));
 
         // update_fps_counter(window);
 
