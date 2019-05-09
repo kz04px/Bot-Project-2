@@ -6,45 +6,6 @@
 #include <cstring>
 #include "defs.hpp"
 
-int load_settings(const char *filename) {
-    if (!filename) {
-        return -1;
-    }
-
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        return -2;
-    }
-
-    char line[512];
-    while (fgets(line, sizeof(line), file)) {
-        char *setting = strtok(line, "=");
-        char *value = strtok(NULL, "\n\0");
-
-        if (setting[0] == '#') {
-            continue;
-        }
-
-        if (strncmp(setting, "width", 5) == 0) {
-            window_width = atoi(value);
-        } else if (strncmp(setting, "height", 6) == 0) {
-            window_height = atoi(value);
-        } else if (strncmp(setting, "fullscreen", 10) == 0) {
-            if (strncmp(value, "true", 4) == 0) {
-                window_fullscreen = GL_TRUE;
-            } else {
-                window_fullscreen = GL_FALSE;
-            }
-        } else {
-            print_log(
-                "ERROR: Unknown setting (%s) value (%s)\n", setting, value);
-        }
-    }
-
-    fclose(file);
-    return 0;
-}
-
 int print_log(const char *format, ...) {
     FILE *file = fopen("log.txt", "a");
     if (!file) {

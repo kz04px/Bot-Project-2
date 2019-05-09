@@ -13,9 +13,6 @@ struct SimData {
 extern float camera_x;
 extern float camera_y;
 extern float camera_zoom;
-extern int window_width;
-extern int window_height;
-extern float window_ratio;
 extern int window_fullscreen;
 extern SimData sim_data;
 

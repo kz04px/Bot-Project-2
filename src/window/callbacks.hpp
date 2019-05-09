@@ -1,8 +1,7 @@
 #ifndef CALLBACKS_HPP
 #define CALLBACKS_HPP
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+struct GLFWwindow;
 
 void glfw_window_size_callback(GLFWwindow *window, int width, int height);
 void glfw_cursor_position_callback(GLFWwindow *window,

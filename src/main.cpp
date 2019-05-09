@@ -4,89 +4,14 @@
 #include <iostream>
 #include <thread>
 #include "buffers.hpp"
-#include "callbacks.hpp"
 #include "defs.hpp"
 #include "io.hpp"
 #include "shaders.hpp"
 #include "simulation.hpp"
-
-void update_fps_counter(GLFWwindow* window) {
-    static double previous_seconds = 0;
-    static int frame_count = 0;
-    double current_seconds = glfwGetTime();
-    double elapsed_seconds = current_seconds - previous_seconds;
-    if (elapsed_seconds > 0.25) {
-        previous_seconds = current_seconds;
-        double fps = (double)frame_count / elapsed_seconds;
-        char tmp[128];
-        sprintf(tmp, "Bot Project 2 - %.2ffps", fps);
-        glfwSetWindowTitle(window, tmp);
-        frame_count = 0;
-    }
-    frame_count++;
-}
+#include "window/window.hpp"
 
 int main() {
-    GLenum err;
-
-#ifndef NDEBUG
-    print_log("--- Log Start ---\n");
-    print_log("Date: %s\n", __DATE__);
-    print_log("Time: %s\n", __TIME__);
-#endif
-
-    int r = load_settings("settings.dat");
-    if (r != 0) {
-        // Default values
-        window_width = 640;
-        window_height = 480;
-        window_fullscreen = GL_FALSE;
-        print_log("ERROR: Failed to load settings.dat\n");
-    }
-    window_ratio = (float)window_width / window_height;
-
-    // start GL context and O/S window using the GLFW helper library
-    if (!glfwInit()) {
-        while ((err = glGetError()) != GL_NO_ERROR) {
-            print_log("ERROR: glfwInit() (%i)\n", err);
-        }
-        print_log("ERROR: could not start GLFW3\n");
-        return 1;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-
-    GLFWwindow* window = NULL;
-    if (window_fullscreen == GL_TRUE) {
-        GLFWmonitor* mon = glfwGetPrimaryMonitor();
-        const GLFWvidmode* vmode = glfwGetVideoMode(mon);
-        window = glfwCreateWindow(
-            vmode->width, vmode->height, "Extended GL Init", mon, NULL);
-    } else {
-        window = glfwCreateWindow(
-            window_width, window_height, "Bot Project 2", NULL, NULL);
-    }
-    if (!window) {
-        print_log("ERROR: could not open window with GLFW3\n");
-        glfwTerminate();
-        return 1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetWindowSizeCallback(window, glfw_window_size_callback);
-    glfwSetCursorPosCallback(window, glfw_cursor_position_callback);
-    glfwSetScrollCallback(window, glfw_mouse_scroll_callback);
-    glfwSetKeyCallback(window, glfw_keyboard_callback);
-    glfwSetMouseButtonCallback(window, glfw_mouse_button_callback);
-
-    // start GLEW extension handler
-    glewExperimental = GL_TRUE;
-    glewInit();
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        print_log("ERROR: glewInit() (%i)\n", err);
-    }
+    Window window("Bot Project 2", 640, 480);
 
 #ifndef NDEBUG
     const GLubyte* renderer = glGetString(GL_RENDERER);  // get renderer string
@@ -100,33 +25,34 @@ int main() {
     std::cout << std::endl;
 #endif
 
-    // glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_LESS);
-    // glEnable(GL_TEXTURE_2D);
-    glPointSize(3.0);
-    glLineWidth(2.0);
-
+    std::cout << "0u0 -- 111" << std::endl;
     // Create shaders
     GLuint vs = create_shader("shaders//vertex_shader.glsl", GL_VERTEX_SHADER);
+    std::cout << "0u0 -- 222" << std::endl;
     if (vs == 0) {
         print_log("ERROR: create_shader (GL_VERTEX_SHADER) %i\n", vs);
+        return 1;
     }
     GLuint fs =
         create_shader("shaders//fragment_shader.glsl", GL_FRAGMENT_SHADER);
     if (fs == 0) {
         print_log("ERROR: create_shader (GL_FRAGMENT_SHADER) %i\n", vs);
+        return 1;
     }
+    std::cout << "111" << std::endl;
 
     // Create shader program
     GLuint shader_program = glCreateProgram();
     glAttachShader(shader_program, vs);
     glAttachShader(shader_program, fs);
     glLinkProgram(shader_program);
+    std::cout << "222" << std::endl;
 
     World world;
     world_init(&world);
     world_bots_add(&world, 20);
     world_pellets_add(&world, 150);
+    std::cout << "333" << std::endl;
 
 #ifndef NDEBUG
     world_print_details(&world);
@@ -150,7 +76,7 @@ printf("\n");
 #endif
 
     // Does the GPU support current FBO configuration?
-    err = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    GLenum err = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     switch (err) {
         case GL_FRAMEBUFFER_COMPLETE_EXT:
             print_log("Framebuffer status: complete\n");
@@ -193,31 +119,17 @@ printf("\n");
 
     // Drawing
     glClearColor(0.6, 0.6, 0.8, 1.0);
-    while (!glfwWindowShouldClose(window)) {
+    while (!window.should_close()) {
+        const float ratio = (float)window.width() / window.height();
         // Set uniform
-        glm::mat4 vp_matrix =
-            glm::ortho(-20.0 * window_ratio * camera_zoom + camera_x,
-                       20.0 * window_ratio * camera_zoom + camera_x,
-                       -20.0 * camera_zoom + camera_y,
-                       20.0 * camera_zoom + camera_y,
-                       0.0,
-                       1.0);
+        glm::mat4 vp_matrix = glm::ortho(-20.0 * ratio * camera_zoom + camera_x,
+                                         20.0 * ratio * camera_zoom + camera_x,
+                                         -20.0 * camera_zoom + camera_y,
+                                         20.0 * camera_zoom + camera_y,
+                                         0.0,
+                                         1.0);
         glUniformMatrix4fv(
             loc_vp_matrix, 1, GL_FALSE, glm::value_ptr(vp_matrix));
-
-        // update_fps_counter(window);
-
-        // Update FPS display
-        current_seconds = glfwGetTime();
-        if (current_seconds - last_seconds >= 0.5) {
-            char tmp[128];
-            sprintf(tmp,
-                    "Bot Project 2 - %i fps - %.2f avg fitness",
-                    sim_data.fps,
-                    world.average_fitness);
-            glfwSetWindowTitle(window, tmp);
-            last_seconds = current_seconds;
-        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shader_program);
@@ -291,14 +203,13 @@ printf("\n");
             }
         }
 
-        glfwPollEvents();
-        glfwSwapBuffers(window);
+        window.poll_events();
+        window.swap_buffer();
     }
 
     sim_data.quit = 1;
     if (sim_thread.joinable()) {
         sim_thread.join();
     }
-    glfwTerminate();
     return 0;
 }

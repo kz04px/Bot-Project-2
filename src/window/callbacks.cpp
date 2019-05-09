@@ -1,37 +1,42 @@
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <cassert>
 #include <iostream>
-#include "defs.hpp"
-#include "io.hpp"
+#include "../defs.hpp"
+#include "../io.hpp"
+#include "data.hpp"
 
-void glfw_window_size_callback(GLFWwindow* window, int width, int height) {
+bool camera_moving = false;
+
+void glfw_window_size_callback(GLFWwindow *window, int width, int height) {
     assert(window);
-    window_width = width;
-    window_height = height;
-    window_ratio = (float)window_width / window_height;
+    WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
+    data.width_ = width;
+    data.height_ = height;
 
-    glViewport(0, 0, window_width, window_height);
+    glViewport(0, 0, width, height);
 }
 
-int camera_moving = 0;
-
-void glfw_cursor_position_callback(GLFWwindow* window,
+void glfw_cursor_position_callback(GLFWwindow *window,
                                    double xpos,
                                    double ypos) {
     assert(window);
+    WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
+
     static double xlast = 0;
     static double ylast = 0;
 
-    if (camera_moving == 1) {
-        camera_x -=
-            40.0 * (xpos - xlast) / window_width * camera_zoom * window_ratio;
-        camera_y += 40.0 * (ypos - ylast) / window_height * camera_zoom;
+    if (camera_moving) {
+        const float ratio = (float)data.width_ / data.height_;
+        camera_x -= 40.0 * (xpos - xlast) / data.width_ * camera_zoom * ratio;
+        camera_y += 40.0 * (ypos - ylast) / data.height_ * camera_zoom;
     }
 
     xlast = xpos;
     ylast = ypos;
 }
 
-void glfw_mouse_scroll_callback(GLFWwindow* window,
+void glfw_mouse_scroll_callback(GLFWwindow *window,
                                 double xoffset,
                                 double yoffset) {
     assert(window);
@@ -48,31 +53,30 @@ void glfw_mouse_scroll_callback(GLFWwindow* window,
     }
 }
 
-void glfw_mouse_button_callback(GLFWwindow* window,
+void glfw_mouse_button_callback(GLFWwindow *window,
                                 int button,
                                 int action,
                                 int mods) {
     assert(window);
-    // Button:
-    // 0 - Left
-    // 1 - Right
-    // 2 - Middle
 
-    // Action:
-    // 1 - Down
-    // 0 - Up
-
-    if (button == 1) {
-        camera_moving = action;
+    switch (button) {
+        case GLFW_MOUSE_BUTTON_LEFT:
+            break;
+        case GLFW_MOUSE_BUTTON_RIGHT:
+            camera_moving = (action == GLFW_PRESS);
+            break;
+        default:
+            break;
     }
 }
 
-void glfw_keyboard_callback(GLFWwindow* window,
+void glfw_keyboard_callback(GLFWwindow *window,
                             int key,
                             int scancode,
                             int action,
                             int mods) {
     assert(window);
+    WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
     // Action:
     //  1 - Press
     //  2 - Repeat
@@ -108,7 +112,7 @@ void glfw_keyboard_callback(GLFWwindow* window,
             }
             break;
         case GLFW_KEY_F2:
-            screenshot_tga("test.tga", window_width, window_height);
+            screenshot_tga("test.tga", data.width_, data.height_);
             break;
         default:
             std::cout << "Key: " << key << " " << action << std::endl;
