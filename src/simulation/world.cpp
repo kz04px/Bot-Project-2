@@ -3,7 +3,7 @@
 #include <cmath>
 #include <ctime>
 #include <iostream>
-#include "defs.hpp"
+#include "../defs.hpp"
 
 #define DEG_TO_RAD(x) (x * 0.0174532925)
 #define RAD_TO_DEG(x) (x / 0.0174532925)

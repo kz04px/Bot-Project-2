@@ -2,7 +2,8 @@
 #include <chrono>
 #include <cstddef>
 #include <thread>
-#include "defs.hpp"
+#include "../defs.hpp"
+#include "world.hpp"
 
 void simulate_world(World &world) {
     while (!sim_data.quit) {

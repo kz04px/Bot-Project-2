@@ -3,8 +3,8 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "bot.hpp"
-#include "world.hpp"
+#include "simulation/bot.hpp"
+#include "simulation/world.hpp"
 
 #define EYE_CONE_ACCURACY 16
 #define EAR_RANGE_ACCURACY 64

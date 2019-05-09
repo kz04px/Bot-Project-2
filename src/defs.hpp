@@ -1,8 +1,6 @@
 #ifndef DEFS_HPP_INCLUDED
 #define DEFS_HPP_INCLUDED
 
-#include "world.hpp"
-
 struct SimData {
     int fps_max;
     int fps;

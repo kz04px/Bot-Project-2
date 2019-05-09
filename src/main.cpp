@@ -7,7 +7,7 @@
 #include "defs.hpp"
 #include "io.hpp"
 #include "shaders.hpp"
-#include "simulation.hpp"
+#include "simulation/simulation.hpp"
 #include "window/window.hpp"
 
 int main() {
