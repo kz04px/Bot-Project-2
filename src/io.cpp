@@ -1,33 +1,12 @@
 #include "io.hpp"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <cassert>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "defs.hpp"
-
-int print_log(const char *format, ...) {
-    FILE *file = fopen("log.txt", "a");
-    if (!file) {
-        return -1;
-    }
-
-    va_list args;
-    va_start(args, format);
-    vfprintf(file, format, args);
-    va_end(args);
-
-    fclose(file);
-    return 0;
-}
-
-void print_log_shader_info(GLuint shader_index) {
-    int max_length = 2048;
-    int actual_length = 0;
-    char log[2048];
-    glGetShaderInfoLog(shader_index, max_length, &actual_length, log);
-    print_log("Shader info log for GL index %i: %s\n", shader_index, log);
-}
 
 int screenshot_tga(char *path, int w, int h) {
     assert(path);

@@ -6,6 +6,7 @@
 #include "buffers.hpp"
 #include "defs.hpp"
 #include "io.hpp"
+#include "log.hpp"
 #include "shaders.hpp"
 #include "simulation/simulation.hpp"
 #include "window/window.hpp"
@@ -16,43 +17,34 @@ int main() {
 #ifndef NDEBUG
     const GLubyte* renderer = glGetString(GL_RENDERER);  // get renderer string
     const GLubyte* version = glGetString(GL_VERSION);    // version as a string
-
-    std::cout << "Debug info:" << std::endl;
-    std::cout << " Date: " << __DATE__ << std::endl;
-    std::cout << " Time: " << __TIME__ << std::endl;
-    std::cout << " Renderer: " << renderer << std::endl;
-    std::cout << " OpenGL version supported " << version << std::endl;
-    std::cout << std::endl;
+    Log::get()->debug("Compiled: ", __TIME__, " ", __DATE__);
+    Log::get()->debug("OpenGL Renderer: ", renderer);
+    Log::get()->debug("OpenGL Version: ", version);
 #endif
 
-    std::cout << "0u0 -- 111" << std::endl;
     // Create shaders
     GLuint vs = create_shader("shaders//vertex_shader.glsl", GL_VERTEX_SHADER);
-    std::cout << "0u0 -- 222" << std::endl;
     if (vs == 0) {
-        print_log("ERROR: create_shader (GL_VERTEX_SHADER) %i\n", vs);
+        Log::get()->error("GL_VERTEX_SHADER creation error");
         return 1;
     }
     GLuint fs =
         create_shader("shaders//fragment_shader.glsl", GL_FRAGMENT_SHADER);
     if (fs == 0) {
-        print_log("ERROR: create_shader (GL_FRAGMENT_SHADER) %i\n", vs);
+        Log::get()->error("GL_FRAGMENT_SHADER creation error");
         return 1;
     }
-    std::cout << "111" << std::endl;
 
     // Create shader program
     GLuint shader_program = glCreateProgram();
     glAttachShader(shader_program, vs);
     glAttachShader(shader_program, fs);
     glLinkProgram(shader_program);
-    std::cout << "222" << std::endl;
 
     World world;
     world_init(&world);
     world_bots_add(&world, 20);
     world_pellets_add(&world, 150);
-    std::cout << "333" << std::endl;
 
 #ifndef NDEBUG
     world_print_details(&world);
@@ -79,10 +71,10 @@ printf("\n");
     GLenum err = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     switch (err) {
         case GL_FRAMEBUFFER_COMPLETE_EXT:
-            print_log("Framebuffer status: complete\n");
+            Log::get()->info("Framebuffer status: complete");
             break;
         default:
-            print_log("ERROR: Framebuffer status: %i\n", err);
+            Log::get()->error("Framebuffer status");
             break;
     }
 
@@ -110,7 +102,7 @@ printf("\n");
     // Find uniform
     GLint loc_vp_matrix = glGetUniformLocation(shader_program, "vp_matrix");
     if (loc_vp_matrix < 0) {
-        print_log("ERROR: Could not find uniform vp_matrix\n");
+        Log::get()->error("Could not find uniform vp_matrix");
         return -1;
     }
 

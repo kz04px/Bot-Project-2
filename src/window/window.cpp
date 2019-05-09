@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <cassert>
 #include <iostream>
+#include "../log.hpp"
 #include "callbacks.hpp"
 
 Window::Window(const std::string &title, const int width, const int height) {
@@ -14,6 +15,7 @@ Window::Window(const std::string &title, const int width, const int height) {
     assert(height > 0);
 
     if (!glfwInit()) {
+        Log::get()->error("glfwInit error ", glGetError());
         throw "asd";
     }
 
@@ -24,6 +26,7 @@ Window::Window(const std::string &title, const int width, const int height) {
     window_ = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
     if (!window_) {
+        Log::get()->error("glfwCreateWindow error ", glGetError());
         throw "weow";
     }
 
