@@ -11,7 +11,14 @@
 #include "simulation/simulation.hpp"
 #include "window/window.hpp"
 
-int main() {
+int main(int argc, char** argv) {
+    bool benchmark = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "-benchmark") {
+            benchmark = true;
+        }
+    }
+
     Window window("Bot Project 2", 640, 480);
 
 #ifndef NDEBUG
@@ -48,24 +55,28 @@ int main() {
 
 #ifndef NDEBUG
     world_print_details(&world);
-
-/*
-#define NUM_FRAMES 10000
-double t0 = glfwGetTime();
-for(i = 0; i < NUM_FRAMES; ++i)
-{
-  world_simulate_frame(world);
-}
-double t1 = glfwGetTime();
-
-printf("Simulation Benchmark:\n");
-printf("Frames: %i\n", NUM_FRAMES);
-printf("Total time: %.2gs\n", t1-t0);
-printf("Time per frame: %.4gns\n", (t1-t0)/NUM_FRAMES*1000.0*1000.0);
-printf("Max physics FPS: %i\n", (int)(NUM_FRAMES/(t1-t0)));
-printf("\n");
-*/
 #endif
+
+    if (benchmark) {
+        const int NUM_FRAMES = 10000;
+        const auto t0 = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < NUM_FRAMES; ++i) {
+            world_simulate_frame(&world);
+        }
+        const auto t1 = std::chrono::high_resolution_clock::now();
+        const auto diff =
+            std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
+
+        std::cout << "Simulation Benchmark:" << std::endl;
+        std::cout << "Frames: " << NUM_FRAMES << std::endl;
+        std::cout << "Total time: " << diff.count() << "ms" << std::endl;
+        std::cout << "Time per frame: " << (float)diff.count() / NUM_FRAMES
+                  << "ms" << std::endl;
+        std::cout << "Max physics FPS: "
+                  << 1000 * (float)NUM_FRAMES / diff.count() << std::endl;
+
+        Log::get()->info("Benchmark: ", diff.count(), "ms");
+    }
 
     // Does the GPU support current FBO configuration?
     GLenum err = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
