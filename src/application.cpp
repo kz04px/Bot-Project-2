@@ -66,10 +66,7 @@ void Application::on_event(Event &e) {
             on_key_press(static_cast<KeyPressEvent &>(e));
             break;
         case EventType::WindowResizeEvent:
-            glViewport(0,
-                       0,
-                       static_cast<WindowResizeEvent &>(e).width(),
-                       static_cast<WindowResizeEvent &>(e).height());
+            on_window_resize(static_cast<WindowResizeEvent &>(e));
             break;
         default:
             break;
@@ -90,9 +87,9 @@ void Application::on_mouse_move(MouseMoveEvent &e) {
 
     if (camera_moving_) {
         const float ratio = window_.width() / window_.height();
-        camera_x -=
-            40.0 * (e.x() - xlast) / window_.width() * camera_zoom * ratio;
-        camera_y += 40.0 * (e.y() - ylast) / window_.height() * camera_zoom;
+        const float dx = (e.x() - xlast) / window_.width();
+        const float dy = (e.y() - ylast) / window_.height();
+        camera_.shift(dx, dy);
     }
 
     xlast = e.x();
@@ -101,15 +98,9 @@ void Application::on_mouse_move(MouseMoveEvent &e) {
 
 void Application::on_mouse_scroll(MouseScrollEvent &e) {
     if (e.up()) {
-        camera_zoom /= 1.1;
+        camera_.zoom_out();
     } else {
-        camera_zoom *= 1.1;
-    }
-
-    if (camera_zoom < 0.05) {
-        camera_zoom = 0.05;
-    } else if (camera_zoom > 20.0) {
-        camera_zoom = 20.0;
+        camera_.zoom_in();
     }
 }
 
@@ -144,6 +135,11 @@ void Application::on_key_press(KeyPressEvent &e) {
     }
 }
 
+void Application::on_window_resize(WindowResizeEvent &e) {
+    glViewport(0, 0, e.width(), e.height());
+    camera_.set_ratio(e.width(), e.height());
+}
+
 void Application::run() {
     Log::get()->info("Application run");
 
@@ -165,10 +161,6 @@ void Application::run() {
     Buffers bufferBots;
     buffers_init_bots(&bufferBots);
 
-    camera_x = world_.w / 2;
-    camera_y = world_.h / 2;
-    camera_zoom = 1.2;
-
     // Find uniform
     GLint loc_vp_matrix = glGetUniformLocation(shader_program_, "vp_matrix");
     if (loc_vp_matrix < 0) {
@@ -188,12 +180,8 @@ void Application::run() {
         // Render frame
         const float ratio = (float)window_.width() / window_.height();
         // Set uniform
-        glm::mat4 vp_matrix = glm::ortho(-20.0 * ratio * camera_zoom + camera_x,
-                                         20.0 * ratio * camera_zoom + camera_x,
-                                         -20.0 * camera_zoom + camera_y,
-                                         20.0 * camera_zoom + camera_y,
-                                         0.0,
-                                         1.0);
+        glm::mat4 vp_matrix = camera_.matrix();
+
         glUniformMatrix4fv(
             loc_vp_matrix, 1, GL_FALSE, glm::value_ptr(vp_matrix));
 
