@@ -1,9 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <chrono>
+#include <clog/clog.hpp>
 #include <iostream>
 #include "application.hpp"
-#include "log.hpp"
 #include "simulation/world.hpp"
 
 int main(int argc, char** argv) {
@@ -38,14 +38,14 @@ int main(int argc, char** argv) {
         std::cout << "Max physics FPS: "
                   << 1000 * (float)NUM_FRAMES / diff.count() << std::endl;
 
-        Log::get()->info("Benchmark: ", diff.count(), "ms");
+        clog::Log::get()->info("Benchmark: ", diff.count(), "ms");
     }
 
     try {
         Application app;
         app.run();
     } catch (...) {
-        Log::get()->error("Application exception");
+        clog::Log::get()->error("Application exception");
         return 1;
     }
 

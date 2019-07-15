@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include <clog/clog.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,7 +10,6 @@
 #include "events/mouse-event.hpp"
 #include "events/window-event.hpp"
 #include "io.hpp"
-#include "log.hpp"
 #include "shaders.hpp"
 #include "simulation/world.hpp"
 #include "window/window.hpp"
@@ -20,20 +20,20 @@ Application::Application()
       paused_{false},
       quit_{false},
       camera_moving_{false} {
-    Log::get()->info("Application constructor");
+    clog::Log::get()->info("Application constructor");
     window_.set_callback(
         std::bind(&Application::on_event, this, std::placeholders::_1));
 
     // Create shaders
     GLuint vs = create_shader("shaders//vertex_shader.glsl", GL_VERTEX_SHADER);
     if (vs == 0) {
-        Log::get()->error("GL_VERTEX_SHADER creation error");
+        clog::Log::get()->error("GL_VERTEX_SHADER creation error");
         return;
     }
     GLuint fs =
         create_shader("shaders//fragment_shader.glsl", GL_FRAGMENT_SHADER);
     if (fs == 0) {
-        Log::get()->error("GL_FRAGMENT_SHADER creation error");
+        clog::Log::get()->error("GL_FRAGMENT_SHADER creation error");
         return;
     }
 
@@ -45,7 +45,7 @@ Application::Application()
 }
 
 Application::~Application() {
-    Log::get()->info("Application destructor");
+    clog::Log::get()->info("Application destructor");
 }
 
 void Application::on_event(Event &e) {
@@ -141,7 +141,7 @@ void Application::on_window_resize(WindowResizeEvent &e) {
 }
 
 void Application::run() {
-    Log::get()->info("Application run");
+    clog::Log::get()->info("Application run");
 
     world_init(&world_);
     world_bots_add(&world_, 20);
@@ -164,7 +164,7 @@ void Application::run() {
     // Find uniform
     GLint loc_vp_matrix = glGetUniformLocation(shader_program_, "vp_matrix");
     if (loc_vp_matrix < 0) {
-        Log::get()->error("Could not find uniform vp_matrix");
+        clog::Log::get()->error("Could not find uniform vp_matrix");
         return;
     }
 

@@ -1,9 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cassert>
+#include <clog/clog.hpp>
 #include <fstream>
 #include "io.hpp"
-#include "log.hpp"
 
 std::string load_shader_file(const char* filename) {
     assert(filename);
@@ -23,7 +23,7 @@ int create_shader(const char* filename, int type) {
 
     std::string shader_string = load_shader_file(filename);
     /*if (!shader_string) {
-        Log::get()->error("Failed to load ", filename);
+        clog::Log::get()->error("Failed to load ", filename);
         return -1;
     }*/
 
@@ -34,7 +34,7 @@ int create_shader(const char* filename, int type) {
     glCompileShader(s);
     glGetShaderiv(s, GL_COMPILE_STATUS, &params);
     if (GL_TRUE != params) {
-        Log::get()->error("Failed to compile shader");
+        clog::Log::get()->error("Failed to compile shader");
         return -2;
     }
 
