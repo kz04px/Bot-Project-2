@@ -81,3 +81,7 @@ void Window::poll_events() {
 bool Window::should_close() {
     return glfwWindowShouldClose(window_);
 }
+
+void Window::set_callback(const std::function<void(Event &)> &func) {
+    data_.callback_ = func;
+}

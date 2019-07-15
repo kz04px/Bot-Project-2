@@ -2,9 +2,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <thread>
 #include "buffers.hpp"
 #include "defs.hpp"
+#include "events/event.hpp"
+#include "events/keyboard-event.hpp"
+#include "events/mouse-event.hpp"
+#include "events/window-event.hpp"
 #include "io.hpp"
 #include "log.hpp"
 #include "shaders.hpp"
@@ -12,12 +17,98 @@
 #include "simulation/world.hpp"
 #include "window/window.hpp"
 
-Application::Application() : window_{"Bot Project 2", 640, 480}, world_{} {
+Application::Application()
+    : window_{"Bot Project 2", 640, 480},
+      world_{},
+      paused_{false},
+      quit_{false},
+      camera_moving_{false} {
     Log::get()->info("Application constructor");
+    window_.set_callback(
+        std::bind(&Application::on_event, this, std::placeholders::_1));
 }
 
 Application::~Application() {
     Log::get()->info("Application destructor");
+}
+
+void Application::on_event(Event &e) {
+    switch (e.type()) {
+        case EventType::MouseDownEvent:
+            on_mouse_down(static_cast<MouseDownEvent &>(e));
+            break;
+        case EventType::MouseUpEvent:
+            on_mouse_up(static_cast<MouseUpEvent &>(e));
+            break;
+        case EventType::MouseMoveEvent:
+            on_mouse_move(static_cast<MouseMoveEvent &>(e));
+            break;
+        case EventType::KeyPressEvent:
+            on_key_press(static_cast<KeyPressEvent &>(e));
+            break;
+        case EventType::WindowResizeEvent:
+            glViewport(0,
+                       0,
+                       static_cast<WindowResizeEvent &>(e).width(),
+                       static_cast<WindowResizeEvent &>(e).height());
+            break;
+        default:
+            break;
+    }
+}
+
+void Application::on_mouse_down(MouseDownEvent &e) {
+    camera_moving_ = true;
+}
+
+void Application::on_mouse_up(MouseUpEvent &e) {
+    camera_moving_ = false;
+}
+
+void Application::on_mouse_move(MouseMoveEvent &e) {
+    static double xlast = 0;
+    static double ylast = 0;
+
+    if (camera_moving_) {
+        const float ratio = window_.width() / window_.height();
+        camera_x -=
+            40.0 * (e.x() - xlast) / window_.width() * camera_zoom * ratio;
+        camera_y += 40.0 * (e.y() - ylast) / window_.height() * camera_zoom;
+    }
+
+    xlast = e.x();
+    ylast = e.y();
+}
+
+void Application::on_key_press(KeyPressEvent &e) {
+    switch (e.key()) {
+        case GLFW_KEY_ESCAPE:
+            quit_ = true;
+            break;
+        case GLFW_KEY_SPACE:
+            paused_ = !paused_;
+            std::cout << "Paused: " << paused_ << std::endl;
+            break;
+        case GLFW_KEY_1:
+            // fps_max = 30;
+            break;
+        case GLFW_KEY_2:
+            // fps_max = 60;
+            break;
+        case GLFW_KEY_3:
+            // fps_max = 120;
+            break;
+        case GLFW_KEY_4:
+            // fps_max = -1;
+            break;
+        case GLFW_KEY_F2:
+            // screenshot_tga(
+            //    "test.tga", window_.data_.width_, window_.data_.height_);
+            break;
+        default:
+            std::cout << "Key: " << e.key() << std::endl;
+            break;
+    }
 }
 
 void Application::run() {
@@ -98,7 +189,7 @@ void Application::run() {
         glDrawElementsInstanced(GL_TRIANGLES,
                                 12,
                                 GL_UNSIGNED_INT,
-                                (void*)(0 + 0 * sizeof(GL_UNSIGNED_INT)),
+                                (void *)(0 + 0 * sizeof(GL_UNSIGNED_INT)),
                                 world_.grid_w * world_.grid_h);
 
         // Pellets
@@ -107,7 +198,7 @@ void Application::run() {
         glDrawElementsInstanced(GL_TRIANGLES,
                                 8,
                                 GL_UNSIGNED_INT,
-                                (void*)(0 + 0 * sizeof(GL_UNSIGNED_INT)),
+                                (void *)(0 + 0 * sizeof(GL_UNSIGNED_INT)),
                                 world_.num_pellets);
 
         // Bots

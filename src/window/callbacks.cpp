@@ -3,6 +3,9 @@
 #include <cassert>
 #include <iostream>
 #include "../defs.hpp"
+#include "../events/keyboard-event.hpp"
+#include "../events/mouse-event.hpp"
+#include "../events/window-event.hpp"
 #include "../io.hpp"
 #include "data.hpp"
 
@@ -14,7 +17,8 @@ void glfw_window_size_callback(GLFWwindow *window, int width, int height) {
     data.width_ = width;
     data.height_ = height;
 
-    glViewport(0, 0, width, height);
+    WindowResizeEvent event(width, height);
+    data.callback_(event);
 }
 
 void glfw_cursor_position_callback(GLFWwindow *window,
@@ -23,17 +27,8 @@ void glfw_cursor_position_callback(GLFWwindow *window,
     assert(window);
     WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
 
-    static double xlast = 0;
-    static double ylast = 0;
-
-    if (camera_moving) {
-        const float ratio = (float)data.width_ / data.height_;
-        camera_x -= 40.0 * (xpos - xlast) / data.width_ * camera_zoom * ratio;
-        camera_y += 40.0 * (ypos - ylast) / data.height_ * camera_zoom;
-    }
-
-    xlast = xpos;
-    ylast = ypos;
+    MouseMoveEvent event(xpos, ypos);
+    data.callback_(event);
 }
 
 void glfw_mouse_scroll_callback(GLFWwindow *window,
@@ -58,15 +53,16 @@ void glfw_mouse_button_callback(GLFWwindow *window,
                                 int action,
                                 int mods) {
     assert(window);
+    WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
 
-    switch (button) {
-        case GLFW_MOUSE_BUTTON_LEFT:
-            break;
-        case GLFW_MOUSE_BUTTON_RIGHT:
-            camera_moving = (action == GLFW_PRESS);
-            break;
-        default:
-            break;
+    if (action == GLFW_PRESS) {
+        MouseDownEvent event(data.mouse_x_, data.mouse_y_, button);
+        data.callback_(event);
+    } else if (action == GLFW_RELEASE) {
+        MouseUpEvent event(data.mouse_x_, data.mouse_y_, button);
+        data.callback_(event);
+    } else {
+        assert(false);
     }
 }
 
@@ -77,45 +73,16 @@ void glfw_keyboard_callback(GLFWwindow *window,
                             int mods) {
     assert(window);
     WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
-    // Action:
-    //  1 - Press
-    //  2 - Repeat
-    //  0 - Release
-
-    switch (key) {
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, 1);
-            break;
-        case GLFW_KEY_SPACE:
-            if (action == 1) {
-                sim_data.paused = 1 - sim_data.paused;
-            }
-            break;
-        case GLFW_KEY_1:
-            if (action == 1) {
-                sim_data.fps_max = 30;
-            }
-            break;
-        case GLFW_KEY_2:
-            if (action == 1) {
-                sim_data.fps_max = 60;
-            }
-            break;
-        case GLFW_KEY_3:
-            if (action == 1) {
-                sim_data.fps_max = 120;
-            }
-            break;
-        case GLFW_KEY_4:
-            if (action == 1) {
-                sim_data.fps_max = -1;
-            }
-            break;
-        case GLFW_KEY_F2:
-            screenshot_tga("test.tga", data.width_, data.height_);
-            break;
-        default:
-            std::cout << "Key: " << key << " " << action << std::endl;
-            break;
+    if (action == GLFW_PRESS) {
+        KeyPressEvent event(key, scancode, mods);
+        data.callback_(event);
+    } else if (action == GLFW_RELEASE) {
+        KeyReleaseEvent event(key, scancode, mods);
+        data.callback_(event);
+    } else if (action == GLFW_REPEAT) {
+        KeyRepeatEvent event(key, scancode, mods);
+        data.callback_(event);
+    } else {
+        assert(false);
     }
 }

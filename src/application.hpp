@@ -6,17 +6,29 @@
 
 class Window;
 class World;
+class Event;
+class KeyPressEvent;
+class MouseDownEvent;
+class MouseUpEvent;
+class MouseMoveEvent;
 
 class Application {
    public:
     Application();
     ~Application();
+    void on_event(Event &e);
+    void on_mouse_down(MouseDownEvent &e);
+    void on_mouse_up(MouseUpEvent &e);
+    void on_mouse_move(MouseMoveEvent &e);
+    void on_key_press(KeyPressEvent &e);
     void run();
 
    private:
     Window window_;
     World world_;
+    bool paused_;
     bool quit_;
+    bool camera_moving_;
 };
 
 #endif

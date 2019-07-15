@@ -2,8 +2,10 @@
 #define WINDOW_HPP_INCLUDED
 
 #include "data.hpp"
+#include <functional>
 
 struct GLFWwindow;
+class Event;
 
 class Window {
    public:
@@ -16,6 +18,7 @@ class Window {
     void swap_buffer();
     void poll_events();
     bool should_close();
+    void set_callback(const std::function<void(Event &)> &func);
 
    private:
     WindowData data_;
