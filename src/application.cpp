@@ -3,7 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-#include <thread>
 #include "buffers.hpp"
 #include "defs.hpp"
 #include "events/event.hpp"
@@ -13,7 +12,6 @@
 #include "io.hpp"
 #include "log.hpp"
 #include "shaders.hpp"
-#include "simulation/simulation.hpp"
 #include "simulation/world.hpp"
 #include "window/window.hpp"
 
@@ -26,6 +24,25 @@ Application::Application()
     Log::get()->info("Application constructor");
     window_.set_callback(
         std::bind(&Application::on_event, this, std::placeholders::_1));
+
+    // Create shaders
+    GLuint vs = create_shader("shaders//vertex_shader.glsl", GL_VERTEX_SHADER);
+    if (vs == 0) {
+        Log::get()->error("GL_VERTEX_SHADER creation error");
+        return;
+    }
+    GLuint fs =
+        create_shader("shaders//fragment_shader.glsl", GL_FRAGMENT_SHADER);
+    if (fs == 0) {
+        Log::get()->error("GL_FRAGMENT_SHADER creation error");
+        return;
+    }
+
+    // Create shader program
+    shader_program_ = glCreateProgram();
+    glAttachShader(shader_program_, vs);
+    glAttachShader(shader_program_, fs);
+    glLinkProgram(shader_program_);
 }
 
 Application::~Application() {
@@ -114,25 +131,6 @@ void Application::on_key_press(KeyPressEvent &e) {
 void Application::run() {
     Log::get()->info("Application run");
 
-    // Create shaders
-    GLuint vs = create_shader("shaders//vertex_shader.glsl", GL_VERTEX_SHADER);
-    if (vs == 0) {
-        Log::get()->error("GL_VERTEX_SHADER creation error");
-        return;
-    }
-    GLuint fs =
-        create_shader("shaders//fragment_shader.glsl", GL_FRAGMENT_SHADER);
-    if (fs == 0) {
-        Log::get()->error("GL_FRAGMENT_SHADER creation error");
-        return;
-    }
-
-    // Create shader program
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, vs);
-    glAttachShader(shader_program, fs);
-    glLinkProgram(shader_program);
-
     world_init(&world_);
     world_bots_add(&world_, 20);
     world_pellets_add(&world_, 150);
@@ -155,21 +153,23 @@ void Application::run() {
     camera_y = world_.h / 2;
     camera_zoom = 1.2;
 
-    // Create simulation thread
-    sim_data.fps_max = 60;
-    sim_data.fps = 0;
-    sim_data.paused = 0;
-    sim_data.quit = 0;
-    std::thread sim_thread(simulate_world, std::ref(world_));
-
     // Find uniform
-    GLint loc_vp_matrix = glGetUniformLocation(shader_program, "vp_matrix");
+    GLint loc_vp_matrix = glGetUniformLocation(shader_program_, "vp_matrix");
     if (loc_vp_matrix < 0) {
         Log::get()->error("Could not find uniform vp_matrix");
         return;
     }
 
-    while (!window_.should_close()) {
+    while (!quit_ && !window_.should_close()) {
+        // Events
+        window_.poll_events();
+
+        // Simulate frame
+        if (!paused_) {
+            world_simulate_frame(&world_);
+        }
+
+        // Render frame
         const float ratio = (float)window_.width() / window_.height();
         // Set uniform
         glm::mat4 vp_matrix = glm::ortho(-20.0 * ratio * camera_zoom + camera_x,
@@ -182,7 +182,7 @@ void Application::run() {
             loc_vp_matrix, 1, GL_FALSE, glm::value_ptr(vp_matrix));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(shader_program);
+        glUseProgram(shader_program_);
 
         // Background
         glBindVertexArray(buffers_background.vao);
@@ -254,12 +254,6 @@ void Application::run() {
             }
         }
 
-        window_.poll_events();
         window_.swap_buffer();
-    }
-
-    sim_data.quit = 1;
-    if (sim_thread.joinable()) {
-        sim_thread.join();
     }
 }

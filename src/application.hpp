@@ -1,6 +1,8 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "simulation/world.hpp"
 #include "window/window.hpp"
 
@@ -26,6 +28,7 @@ class Application {
    private:
     Window window_;
     World world_;
+    GLuint shader_program_;
     bool paused_;
     bool quit_;
     bool camera_moving_;
