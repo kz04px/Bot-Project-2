@@ -4,7 +4,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include "buffers.hpp"
-#include "defs.hpp"
 #include "events/event.hpp"
 #include "events/keyboard-event.hpp"
 #include "events/mouse-event.hpp"
@@ -60,6 +59,9 @@ void Application::on_event(Event &e) {
         case EventType::MouseMoveEvent:
             on_mouse_move(static_cast<MouseMoveEvent &>(e));
             break;
+        case EventType::MouseScrollEvent:
+            on_mouse_scroll(static_cast<MouseScrollEvent &>(e));
+            break;
         case EventType::KeyPressEvent:
             on_key_press(static_cast<KeyPressEvent &>(e));
             break;
@@ -95,6 +97,20 @@ void Application::on_mouse_move(MouseMoveEvent &e) {
 
     xlast = e.x();
     ylast = e.y();
+}
+
+void Application::on_mouse_scroll(MouseScrollEvent &e) {
+    if (e.up()) {
+        camera_zoom /= 1.1;
+    } else {
+        camera_zoom *= 1.1;
+    }
+
+    if (camera_zoom < 0.05) {
+        camera_zoom = 0.05;
+    } else if (camera_zoom > 20.0) {
+        camera_zoom = 20.0;
+    }
 }
 
 void Application::on_key_press(KeyPressEvent &e) {

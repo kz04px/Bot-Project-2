@@ -10,6 +10,7 @@ enum class EventType
     MouseDownEvent,
     MouseUpEvent,
     MouseMoveEvent,
+    MouseScrollEvent,
     KeyPressEvent,
     KeyRepeatEvent,
     KeyReleaseEvent,

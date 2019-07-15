@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "defs.hpp"
 
 int screenshot_tga(char *path, int w, int h) {
     assert(path);

@@ -88,4 +88,28 @@ class MouseMoveEvent : public Event {
     int y_;
 };
 
+class MouseScrollEvent : public Event {
+   public:
+    MouseScrollEvent(const bool up) : up_(up) {
+    }
+    EventType type() const override {
+        return EventType::MouseScrollEvent;
+    }
+    int groups() const override {
+        return EventGroup::InputGroup | EventGroup::MouseGroup;
+    }
+    std::string string() const override {
+        return "MouseScrollEvent";
+    }
+    bool up() const {
+        return up_;
+    }
+    bool down() const {
+        return !up_;
+    }
+
+   private:
+    bool up_;
+};
+
 #endif

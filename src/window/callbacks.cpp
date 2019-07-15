@@ -1,15 +1,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cassert>
-#include <iostream>
-#include "../defs.hpp"
 #include "../events/keyboard-event.hpp"
 #include "../events/mouse-event.hpp"
 #include "../events/window-event.hpp"
-#include "../io.hpp"
 #include "data.hpp"
-
-bool camera_moving = false;
 
 void glfw_window_size_callback(GLFWwindow *window, int width, int height) {
     assert(window);
@@ -35,17 +30,10 @@ void glfw_mouse_scroll_callback(GLFWwindow *window,
                                 double xoffset,
                                 double yoffset) {
     assert(window);
-    if (yoffset > 0.0) {
-        camera_zoom /= 1.1;
-    } else {
-        camera_zoom *= 1.1;
-    }
+    WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
 
-    if (camera_zoom < 0.05) {
-        camera_zoom = 0.05;
-    } else if (camera_zoom > 20.0) {
-        camera_zoom = 20.0;
-    }
+    MouseScrollEvent event(yoffset > 0.0);
+    data.callback_(event);
 }
 
 void glfw_mouse_button_callback(GLFWwindow *window,
